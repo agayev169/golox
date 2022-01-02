@@ -69,6 +69,8 @@ def define_ast(
             + visitor_methods
             + ["}"]
         )
+    
+    os.system(f"gofmt -w {path}")
 
 
 if __name__ == "__main__":
