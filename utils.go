@@ -32,7 +32,6 @@ func isAlpha(b byte) bool {
 		b == '_'
 }
 
-
 func isAlphaNumeric(b byte) bool {
 	return (b >= 'a' && b <= 'z') ||
 		(b >= 'A' && b <= 'Z') ||

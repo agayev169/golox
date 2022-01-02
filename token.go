@@ -3,7 +3,7 @@ package golox
 type TokenType int
 
 const (
-    NONE TokenType = iota
+	NONE TokenType = iota
 
 	// Single-character tokens.
 	LEFT_PAREN

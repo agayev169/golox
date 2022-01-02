@@ -211,11 +211,11 @@ func (s *Scanner) parseIdentifier() {
 
 	text := s.curTokenSb.String()
 
-    if t, ok := keywords[text]; ok {
-        s.addToken(t, nil)
-    } else {
-        s.addToken(IDENTIFIER, nil)
-    }
+	if t, ok := keywords[text]; ok {
+		s.addToken(t, nil)
+	} else {
+		s.addToken(IDENTIFIER, nil)
+	}
 }
 
 func (s *Scanner) readNext() byte {
