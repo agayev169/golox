@@ -44,7 +44,7 @@ def define_ast(
                     "\n",
                     f"type {name} struct {{\n",
                 ]
-                + ["    " + " ".join(param) + "\n" for param in params]
+                + ["    " + f"{publicize(param[0])} {param[1]}\n" for param in params]
                 + ["}\n", "\n"]
             )
 
@@ -71,6 +71,9 @@ def define_ast(
         )
     
     os.system(f"gofmt -w {path}")
+
+def publicize(s: str) -> str:
+    return s[0].upper() + s[1:]
 
 
 if __name__ == "__main__":
