@@ -26,7 +26,7 @@ def define_ast(
         f.writelines(
             [
                 f"type {base_name} interface {{\n",
-                "   Accept(v *Visitor)\n",
+                "   Accept(v Visitor) interface{}\n",
                 "}\n",
                 "\n",
             ]
@@ -49,15 +49,15 @@ def define_ast(
             )
 
             lines = lines + [
-                f"func ({name[0].lower()} *{name}) Accept(v Visitor) {{\n",
-                f"    v.Accept{name}{base_name}({name[0].lower()})\n",
+                f"func ({name[0].lower()} *{name}) Accept(v Visitor) interface{{}} {{\n",
+                f"    return v.Accept{name}{base_name}({name[0].lower()})\n",
                 "}\n",
             ]
 
             lines += ["\n"]
             f.writelines(lines)
 
-            visitor_methods += [f"    Accept{name}{base_name}(*{name})\n"]
+            visitor_methods += [f"    Accept{name}{base_name}(*{name}) interface{{}}\n"]
 
         # Visitor
         f.writelines(

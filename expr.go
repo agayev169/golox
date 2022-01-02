@@ -1,7 +1,7 @@
 package golox
 
 type Expr interface {
-	Accept(v *Visitor)
+	Accept(v Visitor) interface{}
 }
 
 // ================ Binary ================
@@ -12,8 +12,8 @@ type Binary struct {
 	Right    Expr
 }
 
-func (b *Binary) Accept(v Visitor) {
-	v.AcceptBinaryExpr(b)
+func (b *Binary) Accept(v Visitor) interface{} {
+	return v.AcceptBinaryExpr(b)
 }
 
 // ================ Grouping ================
@@ -22,8 +22,8 @@ type Grouping struct {
 	Expr Expr
 }
 
-func (g *Grouping) Accept(v Visitor) {
-	v.AcceptGroupingExpr(g)
+func (g *Grouping) Accept(v Visitor) interface{} {
+	return v.AcceptGroupingExpr(g)
 }
 
 // ================ Literal ================
@@ -32,8 +32,8 @@ type Literal struct {
 	Value interface{}
 }
 
-func (l *Literal) Accept(v Visitor) {
-	v.AcceptLiteralExpr(l)
+func (l *Literal) Accept(v Visitor) interface{} {
+	return v.AcceptLiteralExpr(l)
 }
 
 // ================ Unary ================
@@ -43,15 +43,15 @@ type Unary struct {
 	Right    Expr
 }
 
-func (u *Unary) Accept(v Visitor) {
-	v.AcceptUnaryExpr(u)
+func (u *Unary) Accept(v Visitor) interface{} {
+	return v.AcceptUnaryExpr(u)
 }
 
 // ================ Visitor ================
 
 type Visitor interface {
-	AcceptBinaryExpr(*Binary)
-	AcceptGroupingExpr(*Grouping)
-	AcceptLiteralExpr(*Literal)
-	AcceptUnaryExpr(*Unary)
+	AcceptBinaryExpr(*Binary) interface{}
+	AcceptGroupingExpr(*Grouping) interface{}
+	AcceptLiteralExpr(*Literal) interface{}
+	AcceptUnaryExpr(*Unary) interface{}
 }
