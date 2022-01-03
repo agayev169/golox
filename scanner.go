@@ -296,7 +296,7 @@ func (s *Scanner) unread(n, line, col int) {
 }
 
 func (s *Scanner) addToken(t TokenType, literal interface{}) {
-	token := Token{Type: t, Lexeme: s.curTokenSb.String(), Literal: literal, Line: s.line, Col: s.col}
+	token := Token{Type: t, Lexeme: s.curTokenSb.String(), Literal: literal, File: "file.lox", Line: s.line, Col: s.col}
 
 	log.Printf("[DEBUG] Adding token: %v\n", token)
 
