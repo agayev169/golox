@@ -13,6 +13,8 @@ import (
 )
 
 func main() {
+    log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	args := os.Args
 	if len(args) > 2 {
 		log.Printf("Usage: %s [script]\n", args[0])
@@ -60,6 +62,16 @@ func run(r *bufio.Reader) error {
 	fatal(err)
 
 	log.Printf("[INFO] Scanned the following tokens: %v\n", tokens)
+
+    p := golox.NewParser(tokens)
+
+    expr, err := p.Parse()
+    fatal(err)
+
+    ap := &golox.AstPrinter{}
+    str := expr.Accept(ap)
+
+	log.Printf("[INFO] Parsed the following expression: %v\n", str)
 
 	return nil
 }
