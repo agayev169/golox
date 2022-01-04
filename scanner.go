@@ -136,7 +136,7 @@ func (s *Scanner) scanToken() error {
 		} else if isAlpha(b) {
 			s.parseIdentifier()
 		} else {
-			return &ScanError{File: "", Line: s.line, Col: s.col, Msg: "Unexpected character."}
+			return &LoxError{Number: UnexpectedChar, File: "", Line: s.line, Col: s.col, Msg: "Unexpected character."}
 		}
 	}
 
@@ -159,7 +159,7 @@ func (s *Scanner) parseString() error {
 	}
 
 	if s.isAtEnd() {
-		return &ScanError{File: "", Line: s.line, Col: s.col, Msg: "Unterminated string. Expected \""}
+		return &LoxError{Number: UnterminatedString, File: "", Line: s.line, Col: s.col, Msg: "Unterminated string. Expected \""}
 	}
 
 	s.readNext()

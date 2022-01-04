@@ -11,17 +11,17 @@ func NewParser(tokens []Token) *Parser {
 	return &Parser{tokens: tokens, current: 0}
 }
 
-func (p *Parser) Parse() (Expr, error) {
+func (p *Parser) Parse() (Expr, *LoxError) {
 	p.current = 0
 
 	return p.parseExpression()
 }
 
-func (p *Parser) parseExpression() (Expr, error) {
+func (p *Parser) parseExpression() (Expr, *LoxError) {
 	return p.parseEquality()
 }
 
-func (p *Parser) parseEquality() (Expr, error) {
+func (p *Parser) parseEquality() (Expr, *LoxError) {
 	expr, err := p.parseComparison()
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (p *Parser) parseEquality() (Expr, error) {
 	return expr, nil
 }
 
-func (p *Parser) parseComparison() (Expr, error) {
+func (p *Parser) parseComparison() (Expr, *LoxError) {
 	expr, err := p.parseTerm()
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (p *Parser) parseComparison() (Expr, error) {
 	return expr, nil
 }
 
-func (p *Parser) parseTerm() (Expr, error) {
+func (p *Parser) parseTerm() (Expr, *LoxError) {
 	expr, err := p.parseFactor()
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (p *Parser) parseTerm() (Expr, error) {
 	return expr, nil
 }
 
-func (p *Parser) parseFactor() (Expr, error) {
+func (p *Parser) parseFactor() (Expr, *LoxError) {
 	expr, err := p.parseUnary()
 	if err != nil {
 		return nil, err
@@ -101,7 +101,7 @@ func (p *Parser) parseFactor() (Expr, error) {
 	return expr, nil
 }
 
-func (p *Parser) parseUnary() (Expr, error) {
+func (p *Parser) parseUnary() (Expr, *LoxError) {
 	if p.peek(MINUS, BANG) {
 		t := p.getNextToken()
 
@@ -116,7 +116,7 @@ func (p *Parser) parseUnary() (Expr, error) {
 	return p.parsePrimary()
 }
 
-func (p *Parser) parsePrimary() (Expr, error) {
+func (p *Parser) parsePrimary() (Expr, *LoxError) {
 	t := p.getNextToken()
 
 	if t.Type == NUMBER || t.Type == STRING {
@@ -149,7 +149,7 @@ func (p *Parser) parsePrimary() (Expr, error) {
 		return &Grouping{Expr: expr}, nil
 	}
 
-	return nil, &ScanError{File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Expected `(` but found `%s`.", t.Lexeme)}
+	return nil, &LoxError{Number: UnexpectedChar, File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Expected one of (number, string, `true`, `false`, `nil`, `(`) but found `%s`.", t.Lexeme)}
 }
 
 func (p *Parser) sync() {
@@ -165,16 +165,16 @@ func (p *Parser) sync() {
 	}
 }
 
-func (p *Parser) consume(tt TokenType) (*Token, error) {
+func (p *Parser) consume(tt TokenType) (*Token, *LoxError) {
 	if p.isAtEnd() {
 		lt := p.tokens[len(p.tokens)-1]
-		return nil, &ScanError{File: lt.File, Line: lt.Line, Col: lt.Col, Msg: "Unfinished expression. Expected `)` but found EOF."}
+		return nil, &LoxError{Number: UnfinishedExpression, File: lt.File, Line: lt.Line, Col: lt.Col, Msg: "Unfinished expression. Expected `)` but found EOF."}
 	}
 
 	t := p.getNextToken()
 
 	if t.Type != tt {
-		return nil, &ScanError{File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Unfinished expression. Expected `)` but found `%s`.", t.Lexeme)}
+		return nil, &LoxError{Number: UnfinishedExpression, File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Unfinished expression. Expected `)` but found `%s`.", t.Lexeme)}
 	}
 
 	return &t, nil
