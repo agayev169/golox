@@ -50,8 +50,30 @@ func (ap *AstPrinter) parenthesize(name string, exprs ...Expr) string {
 	return sb.String()
 }
 
+// Comparators
+
 func areEqualExprs(e1, e2 Expr) bool {
+    if e1 == nil && e2 == nil {
+        return true
+    }
+
+    if (e1 != nil && e2 == nil) || (e1 == nil && e2 != nil) {
+        return false
+    }
+
 	ap := &AstPrinter{}
 
 	return e1.Accept(ap).(string) == e2.Accept(ap).(string)
+}
+
+func areEqualLoxErrors(e1, e2 *LoxError) bool {
+    if (e1 != nil && e2 == nil) || (e1 == nil && e2 != nil) {
+        return false
+    }
+
+    if e1 == nil && e2 == nil {
+        return true
+    }
+
+    return e1.Number == e2.Number
 }
