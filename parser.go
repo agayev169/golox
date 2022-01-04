@@ -152,6 +152,19 @@ func (p *Parser) parsePrimary() (Expr, error) {
 	return nil, &ScanError{File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Expected `(` but found `%s`.", t.Lexeme)}
 }
 
+func (p *Parser) sync() {
+	for !p.isAtEnd() {
+		t := p.getNextToken()
+		if t.Type == SEMICOLON {
+			return
+		}
+
+		if p.peek(CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN) {
+			return
+		}
+	}
+}
+
 func (p *Parser) consume(tt TokenType) (*Token, error) {
 	if p.isAtEnd() {
 		lt := p.tokens[len(p.tokens)-1]
