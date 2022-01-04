@@ -1,32 +1,34 @@
-package golox
+package golox_test
 
 import (
 	"testing"
+
+	"github.com/agayev169/golox"
 )
 
 type printerTestDto struct {
-	Expression Expr
+	Expression golox.Expr
 	Expected   string
 }
 
-var data = map[string]printerTestDto{
+var astPrinterTestData = map[string]printerTestDto{
 	"simple": printerTestDto{
-		Expression: &Binary{
-			Left: &Unary{
-				Operator: Token{
-					Type:   MINUS,
+		Expression: &golox.Binary{
+			Left: &golox.Unary{
+				Operator: golox.Token{
+					Type:   golox.MINUS,
 					Lexeme: "-",
 				},
-				Right: &Literal{
+				Right: &golox.Literal{
 					Value: 123,
 				},
 			},
-			Operator: Token{
-				Type:   STAR,
+			Operator: golox.Token{
+				Type:   golox.STAR,
 				Lexeme: "*",
 			},
-			Right: &Grouping{
-				Expr: &Literal{
+			Right: &golox.Grouping{
+				Expr: &golox.Literal{
 					Value: 45.67,
 				},
 			},
@@ -37,7 +39,7 @@ var data = map[string]printerTestDto{
 
 func TestPrinter(t *testing.T) {
     ap := &AstPrinter{}
-    for k, tv := range data {
+    for k, tv := range astPrinterTestData {
         actual := tv.Expression.Accept(ap)
 
         switch v := actual.(type) {

@@ -1,9 +1,11 @@
-package golox
+package golox_test
 
 import (
 	"fmt"
 	"log"
 	"strings"
+
+	. "github.com/agayev169/golox"
 )
 
 type AstPrinter struct {
@@ -46,4 +48,10 @@ func (ap *AstPrinter) parenthesize(name string, exprs ...Expr) string {
 	sb.WriteString(")")
 
 	return sb.String()
+}
+
+func areEqualExprs(e1, e2 Expr) bool {
+	ap := &AstPrinter{}
+
+	return e1.Accept(ap).(string) == e2.Accept(ap).(string)
 }
