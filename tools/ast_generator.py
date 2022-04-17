@@ -26,7 +26,7 @@ def define_ast(
         f.writelines(
             [
                 f"type {base_name} interface {{\n",
-                "   Accept(v Visitor) interface{}\n",
+                "   Accept(v Visitor) (interface{}, error)\n",
                 "}\n",
                 "\n",
             ]
@@ -44,12 +44,13 @@ def define_ast(
                     "\n",
                     f"type {name} struct {{\n",
                 ]
-                + ["    " + f"{publicize(param[0])} {param[1]}\n" for param in params]
+                + ["    " +
+                    f"{publicize(param[0])} {param[1]}\n" for param in params]
                 + ["}\n", "\n"]
             )
 
             lines = lines + [
-                f"func ({name[0].lower()} *{name}) Accept(v Visitor) interface{{}} {{\n",
+                f"func ({name[0].lower()} *{name}) Accept(v Visitor) (interface{{}}, error) {{\n",
                 f"    return v.Accept{name}{base_name}({name[0].lower()})\n",
                 "}\n",
             ]
@@ -57,7 +58,8 @@ def define_ast(
             lines += ["\n"]
             f.writelines(lines)
 
-            visitor_methods += [f"    Accept{name}{base_name}(*{name}) interface{{}}\n"]
+            visitor_methods += [
+                f"    Accept{name}{base_name}(*{name}) (interface{{}}, error)\n"]
 
         # Visitor
         f.writelines(
@@ -69,8 +71,9 @@ def define_ast(
             + visitor_methods
             + ["}"]
         )
-    
+
     os.system(f"gofmt -w {path}")
+
 
 def publicize(s: str) -> str:
     return s[0].upper() + s[1:]
@@ -88,7 +91,8 @@ if __name__ == "__main__":
         "expr.go",
         "Expr",
         [
-            ("Binary", [("left", "Expr"), ("operator", "Token"), ("right", "Expr")]),
+            ("Binary", [("left", "Expr"),
+             ("operator", "Token"), ("right", "Expr")]),
             ("Grouping", [("expr", "Expr")]),
             ("Literal", [("value", "interface{}")]),
             ("Unary", [("operator", "Token"), ("right", "Expr")]),

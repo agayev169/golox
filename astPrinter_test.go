@@ -38,17 +38,21 @@ var astPrinterTestData = map[string]printerTestDto{
 }
 
 func TestPrinter(t *testing.T) {
-    ap := &AstPrinter{}
-    for k, tv := range astPrinterTestData {
-        actual := tv.Expression.Accept(ap)
+	ap := &AstPrinter{}
+	for k, tv := range astPrinterTestData {
+		actual, err := tv.Expression.Accept(ap)
 
-        switch v := actual.(type) {
-        case string:
-            if tv.Expected != v {
-                t.Fatalf("Failed on test %s. Expected: %s, got: %s\n", k, tv.Expected, actual)
-            }
-        default:
-            t.Fatalf("Expected the output of expr.Accept(ap) to be string, received %v\n", v)
-        }
-    }
+		if err != nil {
+			t.Fatalf("Failed on test %s. Expression.Accept return non-nil error: %v\n", k, err.Error())
+		}
+
+		switch v := actual.(type) {
+		case string:
+			if tv.Expected != v {
+				t.Fatalf("Failed on test %s. Expected: %s, got: %s\n", k, tv.Expected, actual)
+			}
+		default:
+			t.Fatalf("Expected the output of expr.Accept(ap) to be string, received %v\n", v)
+		}
+	}
 }

@@ -11,20 +11,20 @@ import (
 type AstPrinter struct {
 }
 
-func (ap *AstPrinter) AcceptBinaryExpr(b *Binary) interface{} {
-	return ap.parenthesize(b.Operator.Lexeme, b.Left, b.Right)
+func (ap *AstPrinter) AcceptBinaryExpr(b *Binary) (interface{}, error) {
+	return ap.parenthesize(b.Operator.Lexeme, b.Left, b.Right), nil
 }
 
-func (ap *AstPrinter) AcceptGroupingExpr(g *Grouping) interface{} {
-	return ap.parenthesize("group", g.Expr)
+func (ap *AstPrinter) AcceptGroupingExpr(g *Grouping) (interface{}, error) {
+	return ap.parenthesize("group", g.Expr), nil
 }
 
-func (ap *AstPrinter) AcceptLiteralExpr(l *Literal) interface{} {
-	return fmt.Sprintf("%v", l.Value)
+func (ap *AstPrinter) AcceptLiteralExpr(l *Literal) (interface{}, error) {
+	return fmt.Sprintf("%v", l.Value), nil
 }
 
-func (ap *AstPrinter) AcceptUnaryExpr(u *Unary) interface{} {
-	return ap.parenthesize(u.Operator.Lexeme, u.Right)
+func (ap *AstPrinter) AcceptUnaryExpr(u *Unary) (interface{}, error) {
+	return ap.parenthesize(u.Operator.Lexeme, u.Right), nil
 }
 
 func (ap *AstPrinter) parenthesize(name string, exprs ...Expr) string {
@@ -35,7 +35,7 @@ func (ap *AstPrinter) parenthesize(name string, exprs ...Expr) string {
 	for _, expr := range exprs {
 		sb.WriteString(" ")
 
-		res := expr.Accept(ap)
+		res, _ := expr.Accept(ap)
 
 		switch v := res.(type) {
 		case string:
@@ -63,7 +63,10 @@ func areEqualExprs(e1, e2 Expr) bool {
 
 	ap := &AstPrinter{}
 
-	return e1.Accept(ap).(string) == e2.Accept(ap).(string)
+    l, _ := e1.Accept(ap)
+    r, _ := e2.Accept(ap)
+
+	return l.(string) == r.(string)
 }
 
 func areEqualLoxErrors(e1, e2 *LoxError) bool {
