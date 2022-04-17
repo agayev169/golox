@@ -8,6 +8,7 @@ const (
 	UnexpectedChar LoxErrorNumber = iota
 	UnterminatedString
 	UnfinishedExpression
+    RuntimeError
 )
 
 type LoxError struct {
