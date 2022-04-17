@@ -290,7 +290,7 @@ func (s *Scanner) match(m string) bool {
 }
 
 func (s *Scanner) unread(n, line, col int) {
-	s.source.Seek(int64(n), io.SeekCurrent)
+	s.source.Seek(-int64(n), io.SeekCurrent)
 	s.line = line
 	s.col = col
 }
