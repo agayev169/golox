@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-    log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	args := os.Args
 	if len(args) > 2 {
@@ -33,7 +33,9 @@ func runFile(path string) {
 
 	r := bufio.NewReader(f)
 
-	err = run(r)
+	interp := &golox.Interpreter{}
+
+	err = run(r, interp)
 	if err != nil {
 		fatal(err)
 	}
@@ -42,36 +44,50 @@ func runFile(path string) {
 func runPrompt() {
 	reader := bufio.NewReader(os.Stdin)
 
+	interp := &golox.Interpreter{}
+
 	for {
 		fmt.Print("> ")
 		line, err := reader.ReadString('\n')
 		fatal(err)
 
-		err = run(bufio.NewReader(strings.NewReader(line)))
+		err = run(bufio.NewReader(strings.NewReader(line)), interp)
 		warn(err)
 	}
 }
 
-func run(r *bufio.Reader) error {
-	bs, err := io.ReadAll(r)
-	fatal(err)
+func run(r *bufio.Reader, interp *golox.Interpreter) error {
+	bs, err2 := io.ReadAll(r)
+
+	if err2 != nil {
+		return err2
+	}
 
 	s := golox.NewScanner(bytes.NewReader(bs))
 
-	tokens, err := s.ScanTokens()
-	fatal(err)
+	tokens, err2 := s.ScanTokens()
+
+	if err2 != nil {
+		return err2
+	}
 
 	log.Printf("[INFO] Scanned the following tokens: %v\n", tokens)
 
-    p := golox.NewParser(tokens)
+	p := golox.NewParser(tokens)
 
-    expr, err := p.Parse()
-    fatal(err)
+	expr, err3 := p.Parse()
 
-    ap := &golox.AstPrinter{}
-    str := expr.Accept(ap)
+	if err3 != nil {
+		return err3
+	}
 
-	log.Printf("[INFO] Parsed the following expression: %v\n", str)
+	str, err4 := interp.Interpret(expr)
+
+	if err4 != nil {
+		return err4
+	}
+
+	fmt.Println(str)
 
 	return nil
 }
