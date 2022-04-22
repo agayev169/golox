@@ -11,10 +11,61 @@ func NewParser(tokens []Token) *Parser {
 	return &Parser{tokens: tokens, current: 0}
 }
 
-func (p *Parser) Parse() (Expr, *LoxError) {
+func (p *Parser) Parse() ([]Stmt, *LoxError) {
 	p.current = 0
+	stmts := make([]Stmt, 0)
 
-	return p.parseExpression()
+	for !p.isAtEnd() {
+		stmt, err := p.parseStmt()
+		if err != nil {
+			return nil, err
+		}
+
+		stmts = append(stmts, stmt)
+	}
+
+	return stmts, nil
+}
+
+func (p *Parser) parseStmt() (Stmt, *LoxError) {
+	if p.peek(PRINT) {
+		return p.parsePrintStmt()
+	}
+
+	return p.parseExprStmt()
+}
+
+func (p *Parser) parsePrintStmt() (Stmt, *LoxError) {
+	_, err := p.consume(PRINT)
+	if err != nil {
+		return nil, err
+	}
+
+	expr, err2 := p.parseExpression()
+	if err2 != nil {
+		return nil, err2
+	}
+
+	_, err3 := p.consume(SEMICOLON)
+	if err3 != nil {
+		return nil, err3
+	}
+
+	return &Print{Expr: expr}, nil
+}
+
+func (p *Parser) parseExprStmt() (Stmt, *LoxError) {
+	expr, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err2 := p.consume(SEMICOLON)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	return &Expression{Expr: expr}, nil
 }
 
 func (p *Parser) parseExpression() (Expr, *LoxError) {
@@ -168,13 +219,13 @@ func (p *Parser) sync() {
 func (p *Parser) consume(tt TokenType) (*Token, *LoxError) {
 	if p.isAtEnd() {
 		lt := p.tokens[len(p.tokens)-1]
-		return nil, &LoxError{Number: UnfinishedExpression, File: lt.File, Line: lt.Line, Col: lt.Col, Msg: "Unfinished expression. Expected `)` but found EOF."}
+		return nil, &LoxError{Number: UnfinishedExpression, File: lt.File, Line: lt.Line, Col: lt.Col, Msg: fmt.Sprintf("Unfinished expression. Expected `%s` but found EOF.", tt)}
 	}
 
 	t := p.getNextToken()
 
 	if t.Type != tt {
-		return nil, &LoxError{Number: UnfinishedExpression, File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Unfinished expression. Expected `)` but found `%s`.", t.Lexeme)}
+		return nil, &LoxError{Number: UnfinishedExpression, File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Unfinished expression. Expected `%s` but found `%s`.", tt, t.Lexeme)}
 	}
 
 	return &t, nil
@@ -201,5 +252,5 @@ func (p *Parser) peek(ts ...TokenType) bool {
 }
 
 func (p *Parser) isAtEnd() bool {
-	return p.current >= len(p.tokens)
+    return p.current >= len(p.tokens) || p.tokens[p.current].Type == EOF
 }

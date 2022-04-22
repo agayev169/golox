@@ -125,6 +125,7 @@ func (s *Scanner) scanToken() error {
 	case '\t':
 	case '\n':
 		// Ignore whitespace.
+        break
 	case '"':
 		s.parseString()
 	default:

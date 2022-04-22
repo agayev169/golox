@@ -5,8 +5,35 @@ import "fmt"
 type Interpreter struct {
 }
 
-func (interp *Interpreter) Interpret(expr Expr) (interface{}, error) {
-    return expr.Accept(interp)
+func (interp *Interpreter) Interpret(stmts []Stmt) (interface{}, error) {
+	for _, stmt := range stmts {
+		_, err := stmt.Accept(interp)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return nil, nil
+}
+
+func (interp *Interpreter) AcceptExpressionStmt(expr *Expression) (interface{}, error) {
+	_, err := interp.evaluate(expr.Expr)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (interp *Interpreter) AcceptPrintStmt(expr *Print) (interface{}, error) {
+	val, err := interp.evaluate(expr.Expr)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(val)
+
+	return nil, nil
 }
 
 func (interp *Interpreter) AcceptLiteralExpr(l *Literal) (interface{}, error) {
@@ -95,9 +122,9 @@ func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, error) {
 		}
 
 		return nil, &LoxError{
-            Number: UnexpectedChar, File: b.Operator.File, Line: b.Operator.Line, Col: b.Operator.Col,
-            Msg: "Operands must be two numbers or two strings.",
-        }
+			Number: UnexpectedChar, File: b.Operator.File, Line: b.Operator.Line, Col: b.Operator.Col,
+			Msg: "Operands must be two numbers or two strings.",
+		}
 	case GREATER:
 		err := interp.checkNumberOperands(b.Operator, lv, rv)
 
@@ -190,4 +217,8 @@ func (interp *Interpreter) isEqual(lv, rv interface{}) bool {
 	}
 
 	return lv == rv
+}
+
+func (interp *Interpreter) evaluate(expr Expr) (interface{}, error) {
+	return expr.Accept(interp)
 }

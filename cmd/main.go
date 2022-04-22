@@ -13,7 +13,8 @@ import (
 )
 
 func main() {
-    log.SetLevel(log.WarnLevel)
+    log.SetLevel(log.InfoLevel)
+    log.SetFormatter(&log.JSONFormatter{})
 
 	args := os.Args
 	if len(args) > 2 {
@@ -75,19 +76,17 @@ func run(r *bufio.Reader, interp *golox.Interpreter) error {
 
 	p := golox.NewParser(tokens)
 
-	expr, err3 := p.Parse()
+	stmts, err3 := p.Parse()
 
 	if err3 != nil {
 		return err3
 	}
 
-	str, err4 := interp.Interpret(expr)
+	_, err4 := interp.Interpret(stmts)
 
 	if err4 != nil {
 		return err4
 	}
-
-	fmt.Println(str)
 
 	return nil
 }
