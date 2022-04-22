@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"strings"
 
@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
+    log.SetLevel(log.WarnLevel)
 
 	args := os.Args
 	if len(args) > 2 {
@@ -71,7 +71,7 @@ func run(r *bufio.Reader, interp *golox.Interpreter) error {
 		return err2
 	}
 
-	log.Printf("[INFO] Scanned the following tokens: %v\n", tokens)
+	log.Info("Scanned the following tokens: ", tokens)
 
 	p := golox.NewParser(tokens)
 
@@ -97,7 +97,7 @@ func fatal(err error) {
 		return
 	}
 
-	log.Printf("[ERR] %s\n", err)
+	log.WithField("error", err).Error("Error happened")
 	os.Exit(1)
 }
 
@@ -106,5 +106,5 @@ func warn(err error) {
 		return
 	}
 
-	log.Printf("[WARN]: %s\n", err)
+	log.WithField("error", err).Warn("Warning")
 }

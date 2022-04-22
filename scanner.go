@@ -3,7 +3,6 @@ package golox
 import (
 	"bytes"
 	"io"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -52,7 +51,6 @@ func (s *Scanner) ScanTokens() ([]Token, error) {
 }
 
 func (s *Scanner) isAtEnd() bool {
-	log.Printf("[TRACE] s.source.Len() == %d\n", s.source.Len())
 	return s.source.Len() <= 0
 }
 
@@ -112,7 +110,6 @@ func (s *Scanner) scanToken() error {
 		if s.match("/") {
 			for !s.isAtEnd() {
 				b := s.peek()
-				log.Printf("[TRACE] b == %b, (b == 10) == %v\n", b, b == 10)
 
 				if b == '\n' || s.isAtEnd() {
 					break
@@ -229,8 +226,6 @@ func (s *Scanner) readNext() byte {
 
 	s.curTokenSb.WriteByte(b)
 
-	log.Printf("[TRACE] Read %s\n", string(b))
-
 	s.col += 1
 
 	if b == '\n' {
@@ -297,8 +292,6 @@ func (s *Scanner) unread(n, line, col int) {
 
 func (s *Scanner) addToken(t TokenType, literal interface{}) {
 	token := Token{Type: t, Lexeme: s.curTokenSb.String(), Literal: literal, File: "file.lox", Line: s.line, Col: s.col}
-
-	log.Printf("[DEBUG] Adding token: %v\n", token)
 
 	s.tokens = append(s.tokens, token)
 	s.curTokenSb.Reset()
