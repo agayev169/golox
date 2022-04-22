@@ -13,6 +13,8 @@ def define_ast(
 
     path = os.path.join(out_dir, filename)
 
+    visitor_name = f"{base_name}Visitor"
+
     with open(path, "w") as f:
         # package
         f.writelines(
@@ -26,7 +28,7 @@ def define_ast(
         f.writelines(
             [
                 f"type {base_name} interface {{\n",
-                "   Accept(v Visitor) (interface{}, error)\n",
+                f"   Accept(v {visitor_name}) (interface{{}}, error)\n",
                 "}\n",
                 "\n",
             ]
@@ -50,7 +52,7 @@ def define_ast(
             )
 
             lines = lines + [
-                f"func ({name[0].lower()} *{name}) Accept(v Visitor) (interface{{}}, error) {{\n",
+                f"func ({name[0].lower()} *{name}) Accept(v {visitor_name}) (interface{{}}, error) {{\n",
                 f"    return v.Accept{name}{base_name}({name[0].lower()})\n",
                 "}\n",
             ]
@@ -64,9 +66,9 @@ def define_ast(
         # Visitor
         f.writelines(
             [
-                "// ================ Visitor ================\n",
+                f"// ================ {visitor_name} ================\n",
                 "\n",
-                "type Visitor interface {\n",
+                f"type {visitor_name} interface {{\n",
             ]
             + visitor_methods
             + ["}"]
@@ -96,5 +98,15 @@ if __name__ == "__main__":
             ("Grouping", [("expr", "Expr")]),
             ("Literal", [("value", "interface{}")]),
             ("Unary", [("operator", "Token"), ("right", "Expr")]),
+        ],
+    )
+
+    define_ast(
+        out_dir,
+        "stmt.go",
+        "Stmt",
+        [
+            ("Expression", [("expr", "Expr")]),
+            ("Print", [("expr", "Expr")]),
         ],
     )
