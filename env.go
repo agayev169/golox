@@ -1,11 +1,12 @@
 package golox
 
 type Env struct {
-	vars map[string]interface{}
+	vars      map[string]interface{}
+	enclosing *Env
 }
 
-func NewEnv() *Env {
-	return &Env{vars: make(map[string]interface{})}
+func NewEnv(enclosing *Env) *Env {
+	return &Env{vars: make(map[string]interface{}), enclosing: enclosing}
 }
 
 func (e *Env) Define(name string, val interface{}) *LoxError {
@@ -19,12 +20,20 @@ func (e *Env) Get(name Token) (interface{}, *LoxError) {
 		return val, nil
 	}
 
-	return nil, genUndefVarError(name)
+	if e.enclosing == nil {
+		return nil, genUndefVarError(name)
+	}
+
+	return e.enclosing.Get(name)
 }
 
 func (e *Env) Assign(name Token, value interface{}) *LoxError {
 	if _, ok := e.vars[name.Lexeme]; !ok {
-		return genUndefVarError(name)
+		if e.enclosing == nil {
+			return genUndefVarError(name)
+		}
+
+        return e.enclosing.Assign(name, value)
 	}
 
 	e.vars[name.Lexeme] = value

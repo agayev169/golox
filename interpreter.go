@@ -7,7 +7,7 @@ type Interpreter struct {
 }
 
 func NewInterpreter() *Interpreter {
-    return &Interpreter{env: NewEnv()}
+    return &Interpreter{env: NewEnv(nil)}
 }
 
 func (interp *Interpreter) Interpret(stmts []Stmt) (interface{}, error) {
