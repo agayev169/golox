@@ -113,6 +113,7 @@ if __name__ == "__main__":
         "stmt.go",
         "Stmt",
         [
+            ("Block", [("stmts", "[]Stmt")]),
             ("Expression", [("expr", "Expr")]),
             ("Print", [("expr", "Expr")]),
             ("Var", [("name", "Token"), ("initializer", "Expr")]),

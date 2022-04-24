@@ -41,6 +41,22 @@ func (interp *Interpreter) AcceptPrintStmt(expr *Print) (interface{}, error) {
 	return nil, nil
 }
 
+func (interp *Interpreter) AcceptBlockStmt(b *Block) (interface{}, error) {
+    interp.env = NewEnv(interp.env);
+    defer func() {
+        interp.env = interp.env.enclosing
+    }()
+
+    for _, s := range b.Stmts {
+        _, err := s.Accept(interp)
+        if err != nil {
+            return nil, err
+        }
+    }
+
+    return nil, nil
+}
+
 func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, error) {
     var init interface{} = nil
 

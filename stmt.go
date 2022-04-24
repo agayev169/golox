@@ -4,6 +4,16 @@ type Stmt interface {
 	Accept(v StmtVisitor) (interface{}, error)
 }
 
+// ================ Block ================
+
+type Block struct {
+	Stmts []Stmt
+}
+
+func (b *Block) Accept(v StmtVisitor) (interface{}, error) {
+	return v.AcceptBlockStmt(b)
+}
+
 // ================ Expression ================
 
 type Expression struct {
@@ -38,6 +48,7 @@ func (va *Var) Accept(v StmtVisitor) (interface{}, error) {
 // ================ StmtVisitor ================
 
 type StmtVisitor interface {
+	AcceptBlockStmt(*Block) (interface{}, error)
 	AcceptExpressionStmt(*Expression) (interface{}, error)
 	AcceptPrintStmt(*Print) (interface{}, error)
 	AcceptVarStmt(*Var) (interface{}, error)

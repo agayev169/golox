@@ -39,6 +39,15 @@ func (p *Parser) parseDeclaration() (Stmt, *LoxError) {
 		return s, nil
 	}
 
+    if p.peek(LEFT_BRACE) {
+        stmts, err := p.parseBlock()
+        if err != nil {
+            return nil, err
+        }
+
+        return &Block{Stmts: stmts}, nil
+    }
+
 	return p.parseStmt()
 }
 
@@ -116,6 +125,31 @@ func (p *Parser) parseExprStmt() (Stmt, *LoxError) {
 	}
 
 	return &Expression{Expr: expr}, nil
+}
+
+func (p *Parser) parseBlock() ([]Stmt, *LoxError) {
+    _, err := p.consume(LEFT_BRACE)
+    if err != nil {
+        return nil, err
+    }
+
+    stmts := make([]Stmt, 0)
+
+    for !p.isAtEnd() && !p.peek(RIGHT_BRACE) {
+        stmt, err2 := p.parseDeclaration()
+        if err2 != nil {
+            return nil, err2
+        }
+
+        stmts = append(stmts, stmt)
+    }
+
+    _, err2 := p.consume(RIGHT_BRACE)
+    if err2 != nil {
+        return nil, err2
+    }
+
+    return stmts, nil
 }
 
 func (p *Parser) parseExpression() (Expr, *LoxError) {
@@ -282,7 +316,7 @@ func (p *Parser) parsePrimary() (Expr, *LoxError) {
 		return &Grouping{Expr: expr}, nil
 	}
 
-	return nil, &LoxError{Number: UnexpectedChar, File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Expected one of (number, string, `true`, `false`, `nil`, identifier, `(`) but found `%s`.", t.Lexeme)}
+	return nil, &LoxError{Number: UnexpectedChar, File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Expected one of (number, string, `true`, `false`, `nil`, identifier, `(`}) but found `%s`.", t.Lexeme)}
 }
 
 func (p *Parser) sync() {
