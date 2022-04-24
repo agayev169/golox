@@ -16,7 +16,7 @@ func (p *Parser) Parse() ([]Stmt, *LoxError) {
 	stmts := make([]Stmt, 0)
 
 	for !p.isAtEnd() {
-		stmt, err := p.parseStmt()
+		stmt, err := p.parseDeclaration()
 		if err != nil {
 			return nil, err
 		}
@@ -25,6 +25,56 @@ func (p *Parser) Parse() ([]Stmt, *LoxError) {
 	}
 
 	return stmts, nil
+}
+
+func (p *Parser) parseDeclaration() (Stmt, *LoxError) {
+	if p.peek(VAR) {
+		s, err := p.parseVarDeclaration()
+		if err != nil {
+			p.sync()
+
+			return nil, err
+		}
+
+		return s, nil
+	}
+
+	return p.parseStmt()
+}
+
+func (p *Parser) parseVarDeclaration() (Stmt, *LoxError) {
+	_, err := p.consume(VAR)
+	if err != nil {
+		return nil, err
+	}
+
+	name, err2 := p.consume(IDENTIFIER)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	var initializer Expr
+
+	if p.peek(EQUAL) {
+		_, err3 := p.consume(EQUAL)
+		if err3 != nil {
+			return nil, err3
+		}
+
+		init, err4 := p.parseExpression()
+		if err4 != nil {
+			return nil, err4
+		}
+
+		initializer = init
+	}
+
+	_, err3 := p.consume(SEMICOLON)
+	if err3 != nil {
+		return nil, err3
+	}
+
+	return &Var{Name: *name, Initializer: initializer}, nil
 }
 
 func (p *Parser) parseStmt() (Stmt, *LoxError) {
@@ -186,6 +236,10 @@ func (p *Parser) parsePrimary() (Expr, *LoxError) {
 		return &Literal{Value: nil}, nil
 	}
 
+	if t.Type == IDENTIFIER {
+		return &Variable{Name: t}, nil
+	}
+
 	if t.Type == LEFT_PAREN {
 		expr, err := p.parseExpression()
 		if err != nil {
@@ -200,7 +254,7 @@ func (p *Parser) parsePrimary() (Expr, *LoxError) {
 		return &Grouping{Expr: expr}, nil
 	}
 
-	return nil, &LoxError{Number: UnexpectedChar, File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Expected one of (number, string, `true`, `false`, `nil`, `(`) but found `%s`.", t.Lexeme)}
+	return nil, &LoxError{Number: UnexpectedChar, File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Expected one of (number, string, `true`, `false`, `nil`, identifier, `(`) but found `%s`.", t.Lexeme)}
 }
 
 func (p *Parser) sync() {
@@ -252,5 +306,5 @@ func (p *Parser) peek(ts ...TokenType) bool {
 }
 
 func (p *Parser) isAtEnd() bool {
-    return p.current >= len(p.tokens) || p.tokens[p.current].Type == EOF
+	return p.current >= len(p.tokens) || p.tokens[p.current].Type == EOF
 }

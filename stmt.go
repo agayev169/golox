@@ -24,9 +24,21 @@ func (p *Print) Accept(v StmtVisitor) (interface{}, error) {
 	return v.AcceptPrintStmt(p)
 }
 
+// ================ Var ================
+
+type Var struct {
+	Name        Token
+	Initializer Expr
+}
+
+func (va *Var) Accept(v StmtVisitor) (interface{}, error) {
+	return v.AcceptVarStmt(va)
+}
+
 // ================ StmtVisitor ================
 
 type StmtVisitor interface {
 	AcceptExpressionStmt(*Expression) (interface{}, error)
 	AcceptPrintStmt(*Print) (interface{}, error)
+	AcceptVarStmt(*Var) (interface{}, error)
 }

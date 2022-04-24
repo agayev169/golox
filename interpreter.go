@@ -3,6 +3,11 @@ package golox
 import "fmt"
 
 type Interpreter struct {
+    env *Env
+}
+
+func NewInterpreter() *Interpreter {
+    return &Interpreter{env: NewEnv()}
 }
 
 func (interp *Interpreter) Interpret(stmts []Stmt) (interface{}, error) {
@@ -34,6 +39,23 @@ func (interp *Interpreter) AcceptPrintStmt(expr *Print) (interface{}, error) {
 	fmt.Println(val)
 
 	return nil, nil
+}
+
+func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, error) {
+    var init interface{} = nil
+
+    if v.Initializer != nil {
+        val, err := interp.evaluate(v.Initializer)
+        if err != nil {
+            return nil, err
+        }
+
+        init = val
+    }
+
+    interp.env.Define(v.Name.Lexeme, init)
+
+    return nil, nil
 }
 
 func (interp *Interpreter) AcceptLiteralExpr(l *Literal) (interface{}, error) {
@@ -167,6 +189,15 @@ func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, error) {
 		Number: UnexpectedChar, File: b.Operator.File, Line: b.Operator.Line, Col: b.Operator.Col,
 		Msg: fmt.Sprintf("Unsupported operator type `%s`.", b.Operator.Lexeme),
 	}
+}
+
+func (interp *Interpreter) AcceptVariableExpr(v *Variable) (interface{}, error) {
+    val, err := interp.env.Get(v.Name)
+    if err != nil {
+        return nil, err
+    }
+
+    return val, nil
 }
 
 func (interp *Interpreter) checkNumberOperand(op Token, r interface{}) error {

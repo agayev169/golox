@@ -47,6 +47,16 @@ func (u *Unary) Accept(v ExprVisitor) (interface{}, error) {
 	return v.AcceptUnaryExpr(u)
 }
 
+// ================ Variable ================
+
+type Variable struct {
+	Name Token
+}
+
+func (va *Variable) Accept(v ExprVisitor) (interface{}, error) {
+	return v.AcceptVariableExpr(va)
+}
+
 // ================ ExprVisitor ================
 
 type ExprVisitor interface {
@@ -54,4 +64,5 @@ type ExprVisitor interface {
 	AcceptGroupingExpr(*Grouping) (interface{}, error)
 	AcceptLiteralExpr(*Literal) (interface{}, error)
 	AcceptUnaryExpr(*Unary) (interface{}, error)
+	AcceptVariableExpr(*Variable) (interface{}, error)
 }

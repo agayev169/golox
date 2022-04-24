@@ -34,7 +34,7 @@ func runFile(path string) {
 
 	r := bufio.NewReader(f)
 
-	interp := &golox.Interpreter{}
+	interp := golox.NewInterpreter()
 
 	err = run(r, interp)
 	if err != nil {
@@ -45,7 +45,7 @@ func runFile(path string) {
 func runPrompt() {
 	reader := bufio.NewReader(os.Stdin)
 
-	interp := &golox.Interpreter{}
+	interp := golox.NewInterpreter()
 
 	for {
 		fmt.Print("> ")

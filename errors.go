@@ -9,6 +9,7 @@ const (
 	UnterminatedString
 	UnfinishedExpression
     RuntimeError
+    UndefinedVariable
 )
 
 type LoxError struct {
