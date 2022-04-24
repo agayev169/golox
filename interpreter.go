@@ -11,23 +11,27 @@ func NewInterpreter() *Interpreter {
 }
 
 func (interp *Interpreter) Interpret(stmts []Stmt) (interface{}, error) {
+    var res interface{}
+    
 	for _, stmt := range stmts {
-		_, err := stmt.Accept(interp)
+		v, err := stmt.Accept(interp)
 		if err != nil {
 			return nil, err
 		}
+
+        res = v
 	}
 
-	return nil, nil
+	return res, nil
 }
 
 func (interp *Interpreter) AcceptExpressionStmt(expr *Expression) (interface{}, error) {
-	_, err := interp.evaluate(expr.Expr)
+	res, err := interp.evaluate(expr.Expr)
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	return res, nil
 }
 
 func (interp *Interpreter) AcceptPrintStmt(expr *Print) (interface{}, error) {

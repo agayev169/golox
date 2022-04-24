@@ -295,7 +295,7 @@ func (p *Parser) parsePrimary() (Expr, *LoxError) {
 	}
 
 	if t.Type == NIL {
-		return &Literal{Value: nil}, nil
+		return &Literal{Value: Nil{}}, nil
 	}
 
 	if t.Type == IDENTIFIER {

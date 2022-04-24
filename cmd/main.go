@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"os"
 	"strings"
 
@@ -13,8 +13,8 @@ import (
 )
 
 func main() {
-    log.SetLevel(log.InfoLevel)
-    log.SetFormatter(&log.JSONFormatter{})
+	log.SetLevel(log.InfoLevel)
+	log.SetFormatter(&log.JSONFormatter{})
 
 	args := os.Args
 	if len(args) > 2 {
@@ -36,7 +36,7 @@ func runFile(path string) {
 
 	interp := golox.NewInterpreter()
 
-	err = run(r, interp)
+	_, err = run(r, interp)
 	if err != nil {
 		fatal(err)
 	}
@@ -52,16 +52,22 @@ func runPrompt() {
 		line, err := reader.ReadString('\n')
 		fatal(err)
 
-		err = run(bufio.NewReader(strings.NewReader(line)), interp)
-		warn(err)
+		res, err := run(bufio.NewReader(strings.NewReader(line)), interp)
+		if !warn(err) && res != nil {
+			if _, ok := res.(golox.Nil); ok {
+				fmt.Println("nil")
+			} else {
+				fmt.Println(res)
+			}
+		}
 	}
 }
 
-func run(r *bufio.Reader, interp *golox.Interpreter) error {
+func run(r *bufio.Reader, interp *golox.Interpreter) (interface{}, error) {
 	bs, err2 := io.ReadAll(r)
 
 	if err2 != nil {
-		return err2
+		return nil, err2
 	}
 
 	s := golox.NewScanner(bytes.NewReader(bs))
@@ -69,7 +75,7 @@ func run(r *bufio.Reader, interp *golox.Interpreter) error {
 	tokens, err2 := s.ScanTokens()
 
 	if err2 != nil {
-		return err2
+		return nil, err2
 	}
 
 	log.Info("Scanned the following tokens: ", tokens)
@@ -79,16 +85,16 @@ func run(r *bufio.Reader, interp *golox.Interpreter) error {
 	stmts, err3 := p.Parse()
 
 	if err3 != nil {
-		return err3
+		return nil, err3
 	}
 
-	_, err4 := interp.Interpret(stmts)
+	res, err4 := interp.Interpret(stmts)
 
 	if err4 != nil {
-		return err4
+		return nil, err4
 	}
 
-	return nil
+	return res, nil
 }
 
 func fatal(err error) {
@@ -96,14 +102,17 @@ func fatal(err error) {
 		return
 	}
 
-	log.WithField("error", err).Error("Error happened")
+	fmt.Printf("Error happened: %s\n", err.Error())
+
 	os.Exit(1)
 }
 
-func warn(err error) {
+func warn(err error) bool {
 	if err == nil {
-		return
+		return false
 	}
 
-	log.WithField("error", err).Warn("Warning")
+	fmt.Printf("Error happened: %s\n", err.Error())
+
+	return true
 }
