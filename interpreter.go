@@ -58,6 +58,20 @@ func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, error) {
     return nil, nil
 }
 
+func (interp *Interpreter) AcceptAssignExpr(a *Assign) (interface{}, error) {
+    val, err := interp.evaluate(a.Value)
+    if err != nil {
+        return nil, err
+    }
+
+    err2 := interp.env.Assign(a.Name, val)
+    if err2 != nil {
+        return nil, err2
+    }
+
+    return nil, nil
+}
+
 func (interp *Interpreter) AcceptLiteralExpr(l *Literal) (interface{}, error) {
 	return l.Value, nil
 }

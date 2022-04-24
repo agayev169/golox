@@ -4,7 +4,8 @@ varDecl             "var" IDENTIFIER ( "=" expression )? ";" ;
 statement           exprStmt | printStmt ;
 exprStmt            expression ";" ;
 printStmt           "print" expression ";" ;
-expression          equality ;
+expression          asignment ;
+asignment           IDENTIFIER "=" assignment | equality
 equality            comparison ( ( "!=" | "==" ) comparison )* ;
 comparison          term ( ( "<" | "<=" | ">" | ">=" ) term )* ;
 term                factor ( ("+" | "-" ) factor )* ;

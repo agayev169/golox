@@ -98,6 +98,7 @@ if __name__ == "__main__":
         "expr.go",
         "Expr",
         [
+            ("Assign", [("name", "Token"), ("value", "Expr")]),
             ("Binary", [("left", "Expr"),
              ("operator", "Token"), ("right", "Expr")]),
             ("Grouping", [("expr", "Expr")]),

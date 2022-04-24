@@ -4,6 +4,17 @@ type Expr interface {
 	Accept(v ExprVisitor) (interface{}, error)
 }
 
+// ================ Assign ================
+
+type Assign struct {
+	Name  Token
+	Value Expr
+}
+
+func (a *Assign) Accept(v ExprVisitor) (interface{}, error) {
+	return v.AcceptAssignExpr(a)
+}
+
 // ================ Binary ================
 
 type Binary struct {
@@ -60,6 +71,7 @@ func (va *Variable) Accept(v ExprVisitor) (interface{}, error) {
 // ================ ExprVisitor ================
 
 type ExprVisitor interface {
+	AcceptAssignExpr(*Assign) (interface{}, error)
 	AcceptBinaryExpr(*Binary) (interface{}, error)
 	AcceptGroupingExpr(*Grouping) (interface{}, error)
 	AcceptLiteralExpr(*Literal) (interface{}, error)

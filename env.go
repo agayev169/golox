@@ -1,9 +1,5 @@
 package golox
 
-import (
-	"fmt"
-)
-
 type Env struct {
 	vars map[string]interface{}
 }
@@ -23,12 +19,15 @@ func (e *Env) Get(name Token) (interface{}, *LoxError) {
 		return val, nil
 	}
 
-	return nil,
-		&LoxError{
-			File:   name.File,
-			Line:   name.Line,
-			Col:    name.Col,
-			Number: UndefinedVariable,
-			Msg:    fmt.Sprintf("Undefined variable %s", name.Lexeme),
-		}
+	return nil, genUndefVarError(name)
+}
+
+func (e *Env) Assign(name Token, value interface{}) *LoxError {
+	if _, ok := e.vars[name.Lexeme]; !ok {
+		return genUndefVarError(name)
+	}
+
+	e.vars[name.Lexeme] = value
+
+	return nil
 }

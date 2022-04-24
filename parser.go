@@ -119,7 +119,35 @@ func (p *Parser) parseExprStmt() (Stmt, *LoxError) {
 }
 
 func (p *Parser) parseExpression() (Expr, *LoxError) {
-	return p.parseEquality()
+	return p.parseAssignment()
+}
+
+func (p *Parser) parseAssignment() (Expr, *LoxError) {
+    expr, err := p.parseEquality()
+    if err != nil {
+        return nil, err
+    }
+
+    if p.peek(EQUAL) {
+        equals, err2 := p.consume(EQUAL)
+        if err2 != nil {
+            return nil, err2
+        }
+
+        v, ok := expr.(*Variable)
+        if !ok {
+            return nil, &LoxError{File: equals.File, Line: equals.Line, Col: equals.Col, Number: InvalidAssignment, Msg: "Invalid assignment target."}
+        }
+
+        assignment, err3 := p.parseAssignment()
+        if err3 != nil {
+            return nil, err3
+        }
+
+        return &Assign{Name: v.Name, Value: assignment}, nil
+    }
+    
+    return expr, nil
 }
 
 func (p *Parser) parseEquality() (Expr, *LoxError) {
