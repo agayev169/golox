@@ -3,23 +3,23 @@ package golox
 import "fmt"
 
 type Interpreter struct {
-    env *Env
+	env *Env
 }
 
 func NewInterpreter() *Interpreter {
-    return &Interpreter{env: NewEnv(nil)}
+	return &Interpreter{env: NewEnv(nil)}
 }
 
 func (interp *Interpreter) Interpret(stmts []Stmt) (interface{}, error) {
-    var res interface{}
-    
+	var res interface{}
+
 	for _, stmt := range stmts {
 		v, err := stmt.Accept(interp)
 		if err != nil {
 			return nil, err
 		}
 
-        res = v
+		res = v
 	}
 
 	return res, nil
@@ -40,56 +40,60 @@ func (interp *Interpreter) AcceptPrintStmt(expr *Print) (interface{}, error) {
 		return nil, err
 	}
 
-	fmt.Println(val)
+	if _, ok := val.(Nil); ok || val == nil {
+		fmt.Println("nil")
+	} else {
+		fmt.Println(val)
+	}
 
 	return nil, nil
 }
 
 func (interp *Interpreter) AcceptBlockStmt(b *Block) (interface{}, error) {
-    interp.env = NewEnv(interp.env);
-    defer func() {
-        interp.env = interp.env.enclosing
-    }()
+	interp.env = NewEnv(interp.env)
+	defer func() {
+		interp.env = interp.env.enclosing
+	}()
 
-    for _, s := range b.Stmts {
-        _, err := s.Accept(interp)
-        if err != nil {
-            return nil, err
-        }
-    }
+	for _, s := range b.Stmts {
+		_, err := s.Accept(interp)
+		if err != nil {
+			return nil, err
+		}
+	}
 
-    return nil, nil
+	return nil, nil
 }
 
 func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, error) {
-    var init interface{} = nil
+	var init interface{} = nil
 
-    if v.Initializer != nil {
-        val, err := interp.evaluate(v.Initializer)
-        if err != nil {
-            return nil, err
-        }
+	if v.Initializer != nil {
+		val, err := interp.evaluate(v.Initializer)
+		if err != nil {
+			return nil, err
+		}
 
-        init = val
-    }
+		init = val
+	}
 
-    interp.env.Define(v.Name.Lexeme, init)
+	interp.env.Define(v.Name.Lexeme, init)
 
-    return nil, nil
+	return nil, nil
 }
 
 func (interp *Interpreter) AcceptAssignExpr(a *Assign) (interface{}, error) {
-    val, err := interp.evaluate(a.Value)
-    if err != nil {
-        return nil, err
-    }
+	val, err := interp.evaluate(a.Value)
+	if err != nil {
+		return nil, err
+	}
 
-    err2 := interp.env.Assign(a.Name, val)
-    if err2 != nil {
-        return nil, err2
-    }
+	err2 := interp.env.Assign(a.Name, val)
+	if err2 != nil {
+		return nil, err2
+	}
 
-    return nil, nil
+	return nil, nil
 }
 
 func (interp *Interpreter) AcceptLiteralExpr(l *Literal) (interface{}, error) {
@@ -226,12 +230,21 @@ func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, error) {
 }
 
 func (interp *Interpreter) AcceptVariableExpr(v *Variable) (interface{}, error) {
-    val, err := interp.env.Get(v.Name)
-    if err != nil {
-        return nil, err
-    }
+	val, err := interp.env.Get(v.Name)
+	if err != nil {
+		return nil, err
+	}
 
-    return val, nil
+	if val == nil {
+		return nil,
+			&LoxError{File: v.Name.File,
+				Line:   v.Name.Line,
+				Col:    v.Name.Col,
+				Number: UnassignedVariable,
+				Msg:    fmt.Sprintf("Usage of unassigned variable %s", v.Name.Lexeme)}
+	}
+
+	return val, nil
 }
 
 func (interp *Interpreter) checkNumberOperand(op Token, r interface{}) error {

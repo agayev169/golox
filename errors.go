@@ -10,6 +10,7 @@ const (
 	UnfinishedExpression
 	RuntimeError
 	UndefinedVariable
+    UnassignedVariable
 	InvalidAssignment
 )
 
