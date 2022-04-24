@@ -51,9 +51,14 @@ def define_ast(
                 + ["}\n", "\n"]
             )
 
+            varName = name[0].lower()
+
+            if varName == "v":
+                varName = name[:2].lower()
+
             lines = lines + [
-                f"func ({name[0].lower()} *{name}) Accept(v {visitor_name}) (interface{{}}, error) {{\n",
-                f"    return v.Accept{name}{base_name}({name[0].lower()})\n",
+                f"func ({varName} *{name}) Accept(v {visitor_name}) (interface{{}}, error) {{\n",
+                f"    return v.Accept{name}{base_name}({varName})\n",
                 "}\n",
             ]
 
@@ -98,6 +103,7 @@ if __name__ == "__main__":
             ("Grouping", [("expr", "Expr")]),
             ("Literal", [("value", "interface{}")]),
             ("Unary", [("operator", "Token"), ("right", "Expr")]),
+            ("Variable", [("name", "Token")]),
         ],
     )
 
@@ -108,5 +114,6 @@ if __name__ == "__main__":
         [
             ("Expression", [("expr", "Expr")]),
             ("Print", [("expr", "Expr")]),
+            ("Var", [("name", "Token"), ("initializer", "Expr")]),
         ],
     )
