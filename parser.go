@@ -93,6 +93,8 @@ func (p *Parser) parseStmt() (Stmt, *LoxError) {
 		return p.parseIfStmt()
 	} else if p.peek(WHILE) {
 		return p.parseWhileStmt()
+	} else if p.peek(FOR) {
+		return p.parseForStmt()
 	}
 
 	return p.parseExprStmt()
@@ -181,6 +183,109 @@ func (p *Parser) parseWhileStmt() (Stmt, *LoxError) {
 	}
 
 	return &While{Condition: expr, Body: body}, nil
+}
+
+func (p *Parser) parseForStmt() (Stmt, *LoxError) {
+	if _, err := p.consume(FOR); err != nil {
+		return nil, err
+	}
+
+	if _, err := p.consume(LEFT_PAREN); err != nil {
+		return nil, err
+	}
+
+	init, err := p.parseWhileInit()
+	if err != nil {
+		return nil, err
+	}
+
+	cond, err2 := p.parseWhileCond()
+	if err2 != nil {
+		return nil, err2
+	}
+
+	increment, err3 := p.parseWhileIncrement()
+	if err3 != nil {
+		return nil, err3
+	}
+
+	body, err4 := p.parseStmt()
+	if err4 != nil {
+		return nil, err4
+	}
+
+	if increment != nil {
+		body = &Block{Stmts: []Stmt{body, &Expression{Expr: increment}}}
+	}
+
+	if cond != nil {
+		body = &While{Condition: cond, Body: body}
+	}
+
+	if init != nil {
+		body = &Block{Stmts: []Stmt{init, body}}
+	}
+
+	return body, nil
+}
+
+func (p *Parser) parseWhileInit() (Stmt, *LoxError) {
+	var init Stmt
+	if p.peek(SEMICOLON) {
+		if _, err := p.consume(SEMICOLON); err != nil {
+			return nil, err
+		}
+
+		init = nil
+	} else if p.peek(VAR) {
+		if s, err := p.parseVarDeclaration(); err != nil {
+			return nil, err
+		} else {
+			init = s
+		}
+	} else {
+		if s, err := p.parseExprStmt(); err != nil {
+			return nil, err
+		} else {
+			init = s
+		}
+	}
+
+	return init, nil
+}
+
+func (p *Parser) parseWhileCond() (Expr, *LoxError) {
+	var cond Expr
+	if !p.peek(SEMICOLON) {
+		if e, err := p.parseExpression(); err != nil {
+			return nil, err
+		} else {
+			cond = e
+		}
+	}
+
+	if _, err := p.consume(SEMICOLON); err != nil {
+		return nil, err
+	}
+
+	return cond, nil
+}
+
+func (p *Parser) parseWhileIncrement() (Expr, *LoxError) {
+	var increment Expr
+	if !p.peek(RIGHT_PAREN) {
+		if e, err := p.parseExpression(); err != nil {
+			return nil, err
+		} else {
+			increment = e
+		}
+	}
+
+	if _, err := p.consume(RIGHT_PAREN); err != nil {
+		return nil, err
+	}
+
+	return increment, nil
 }
 
 func (p *Parser) parseExprStmt() (Stmt, *LoxError) {
