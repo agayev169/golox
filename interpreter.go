@@ -86,6 +86,26 @@ func (interp *Interpreter) AcceptIfStmt(iff *If) (interface{}, error) {
 	return nil, nil
 }
 
+func (interp *Interpreter) AcceptWhileStmt(w *While) (interface{}, error) {
+	for {
+		cond, err := interp.evaluate(w.Condition)
+		if err != nil {
+			return nil, err
+		}
+
+		if !interp.isTruthy(cond) {
+			break
+		}
+
+		_, err2 := interp.execute(w.Body)
+		if err2 != nil {
+			return nil, err2
+		}
+	}
+
+	return nil, nil
+}
+
 func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, error) {
 	var init interface{} = nil
 
