@@ -57,6 +57,17 @@ func (i *If) Accept(v StmtVisitor) (interface{}, error) {
 	return v.AcceptIfStmt(i)
 }
 
+// ================ While ================
+
+type While struct {
+	Condition Expr
+	Body      Stmt
+}
+
+func (w *While) Accept(v StmtVisitor) (interface{}, error) {
+	return v.AcceptWhileStmt(w)
+}
+
 // ================ StmtVisitor ================
 
 type StmtVisitor interface {
@@ -65,4 +76,5 @@ type StmtVisitor interface {
 	AcceptPrintStmt(*Print) (interface{}, error)
 	AcceptVarStmt(*Var) (interface{}, error)
 	AcceptIfStmt(*If) (interface{}, error)
+	AcceptWhileStmt(*While) (interface{}, error)
 }
