@@ -87,6 +87,8 @@ func (p *Parser) parseStmt() (Stmt, *LoxError) {
         }
 
         return &Block{Stmts: stmts}, nil
+    } else if p.peek(IF) {
+        return p.parseIfStmt()
     }
 
 	return p.parseExprStmt()
@@ -109,6 +111,46 @@ func (p *Parser) parsePrintStmt() (Stmt, *LoxError) {
 	}
 
 	return &Print{Expr: expr}, nil
+}
+
+func (p *Parser) parseIfStmt() (Stmt, *LoxError) {
+    if _, err := p.consume(IF); err != nil {
+        return nil, err
+    }
+
+    if _, err := p.consume(LEFT_PAREN); err != nil {
+        return nil, err
+    }
+
+    expr, err := p.parseExpression()
+    if err != nil {
+        return nil, err
+    }
+
+    if _, err2 := p.consume(RIGHT_PAREN); err2 != nil {
+        return nil, err2
+    }
+
+    body, err2 := p.parseStmt()
+    if err2 != nil {
+        return nil, err2
+    }
+
+    var elseBody Stmt
+    if p.peek(ELSE) {
+        if _, err3 := p.consume(ELSE); err3 != nil {
+            return nil, err3
+        }
+
+        stmt, err3 := p.parseStmt()
+        if err3 != nil {
+            return nil, err3
+        }
+
+        elseBody = stmt
+    }
+
+    return &If{Condition: expr, Body: body, ElseBody: elseBody}, nil
 }
 
 func (p *Parser) parseExprStmt() (Stmt, *LoxError) {
