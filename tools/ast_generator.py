@@ -105,6 +105,8 @@ if __name__ == "__main__":
             ("Literal", [("value", "interface{}")]),
             ("Unary", [("operator", "Token"), ("right", "Expr")]),
             ("Variable", [("name", "Token")]),
+            ("Logical", [("left", "Expr"),
+                         ("operator", "Token"), ("right", "Expr")]),
         ],
     )
 
@@ -117,5 +119,8 @@ if __name__ == "__main__":
             ("Expression", [("expr", "Expr")]),
             ("Print", [("expr", "Expr")]),
             ("Var", [("name", "Token"), ("initializer", "Expr")]),
+            ("If", [("condition", "Expr"), ("body", "Stmt"),
+                    ("elseBody", "Stmt")]),
+            ("While", [("condition", "Expr"), ("body", "Stmt")]),
         ],
     )

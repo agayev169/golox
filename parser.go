@@ -1,6 +1,8 @@
 package golox
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Parser struct {
 	tokens  []Token
@@ -38,15 +40,6 @@ func (p *Parser) parseDeclaration() (Stmt, *LoxError) {
 
 		return s, nil
 	}
-
-    if p.peek(LEFT_BRACE) {
-        stmts, err := p.parseBlock()
-        if err != nil {
-            return nil, err
-        }
-
-        return &Block{Stmts: stmts}, nil
-    }
 
 	return p.parseStmt()
 }
@@ -89,6 +82,19 @@ func (p *Parser) parseVarDeclaration() (Stmt, *LoxError) {
 func (p *Parser) parseStmt() (Stmt, *LoxError) {
 	if p.peek(PRINT) {
 		return p.parsePrintStmt()
+	} else if p.peek(LEFT_BRACE) {
+		stmts, err := p.parseBlock()
+		if err != nil {
+			return nil, err
+		}
+
+		return &Block{Stmts: stmts}, nil
+	} else if p.peek(IF) {
+		return p.parseIfStmt()
+	} else if p.peek(WHILE) {
+		return p.parseWhileStmt()
+	} else if p.peek(FOR) {
+		return p.parseForStmt()
 	}
 
 	return p.parseExprStmt()
@@ -113,6 +119,175 @@ func (p *Parser) parsePrintStmt() (Stmt, *LoxError) {
 	return &Print{Expr: expr}, nil
 }
 
+func (p *Parser) parseIfStmt() (Stmt, *LoxError) {
+	if _, err := p.consume(IF); err != nil {
+		return nil, err
+	}
+
+	if _, err := p.consume(LEFT_PAREN); err != nil {
+		return nil, err
+	}
+
+	expr, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err2 := p.consume(RIGHT_PAREN); err2 != nil {
+		return nil, err2
+	}
+
+	body, err2 := p.parseStmt()
+	if err2 != nil {
+		return nil, err2
+	}
+
+	var elseBody Stmt
+	if p.peek(ELSE) {
+		if _, err3 := p.consume(ELSE); err3 != nil {
+			return nil, err3
+		}
+
+		stmt, err3 := p.parseStmt()
+		if err3 != nil {
+			return nil, err3
+		}
+
+		elseBody = stmt
+	}
+
+	return &If{Condition: expr, Body: body, ElseBody: elseBody}, nil
+}
+
+func (p *Parser) parseWhileStmt() (Stmt, *LoxError) {
+	if _, err := p.consume(WHILE); err != nil {
+		return nil, err
+	}
+
+	if _, err := p.consume(LEFT_PAREN); err != nil {
+		return nil, err
+	}
+
+	expr, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err2 := p.consume(RIGHT_PAREN); err2 != nil {
+		return nil, err2
+	}
+
+	body, err2 := p.parseStmt()
+	if err2 != nil {
+		return nil, err2
+	}
+
+	return &While{Condition: expr, Body: body}, nil
+}
+
+func (p *Parser) parseForStmt() (Stmt, *LoxError) {
+	if _, err := p.consume(FOR); err != nil {
+		return nil, err
+	}
+
+	if _, err := p.consume(LEFT_PAREN); err != nil {
+		return nil, err
+	}
+
+	init, err := p.parseWhileInit()
+	if err != nil {
+		return nil, err
+	}
+
+	cond, err2 := p.parseWhileCond()
+	if err2 != nil {
+		return nil, err2
+	}
+
+	increment, err3 := p.parseWhileIncrement()
+	if err3 != nil {
+		return nil, err3
+	}
+
+	body, err4 := p.parseStmt()
+	if err4 != nil {
+		return nil, err4
+	}
+
+	if increment != nil {
+		body = &Block{Stmts: []Stmt{body, &Expression{Expr: increment}}}
+	}
+
+	if cond != nil {
+		body = &While{Condition: cond, Body: body}
+	}
+
+	if init != nil {
+		body = &Block{Stmts: []Stmt{init, body}}
+	}
+
+	return body, nil
+}
+
+func (p *Parser) parseWhileInit() (Stmt, *LoxError) {
+	var init Stmt
+	if p.peek(SEMICOLON) {
+		if _, err := p.consume(SEMICOLON); err != nil {
+			return nil, err
+		}
+
+		init = nil
+	} else if p.peek(VAR) {
+		if s, err := p.parseVarDeclaration(); err != nil {
+			return nil, err
+		} else {
+			init = s
+		}
+	} else {
+		if s, err := p.parseExprStmt(); err != nil {
+			return nil, err
+		} else {
+			init = s
+		}
+	}
+
+	return init, nil
+}
+
+func (p *Parser) parseWhileCond() (Expr, *LoxError) {
+	var cond Expr
+	if !p.peek(SEMICOLON) {
+		if e, err := p.parseExpression(); err != nil {
+			return nil, err
+		} else {
+			cond = e
+		}
+	}
+
+	if _, err := p.consume(SEMICOLON); err != nil {
+		return nil, err
+	}
+
+	return cond, nil
+}
+
+func (p *Parser) parseWhileIncrement() (Expr, *LoxError) {
+	var increment Expr
+	if !p.peek(RIGHT_PAREN) {
+		if e, err := p.parseExpression(); err != nil {
+			return nil, err
+		} else {
+			increment = e
+		}
+	}
+
+	if _, err := p.consume(RIGHT_PAREN); err != nil {
+		return nil, err
+	}
+
+	return increment, nil
+}
+
 func (p *Parser) parseExprStmt() (Stmt, *LoxError) {
 	expr, err := p.parseExpression()
 	if err != nil {
@@ -128,28 +303,28 @@ func (p *Parser) parseExprStmt() (Stmt, *LoxError) {
 }
 
 func (p *Parser) parseBlock() ([]Stmt, *LoxError) {
-    _, err := p.consume(LEFT_BRACE)
-    if err != nil {
-        return nil, err
-    }
+	_, err := p.consume(LEFT_BRACE)
+	if err != nil {
+		return nil, err
+	}
 
-    stmts := make([]Stmt, 0)
+	stmts := make([]Stmt, 0)
 
-    for !p.isAtEnd() && !p.peek(RIGHT_BRACE) {
-        stmt, err2 := p.parseDeclaration()
-        if err2 != nil {
-            return nil, err2
-        }
+	for !p.isAtEnd() && !p.peek(RIGHT_BRACE) {
+		stmt, err2 := p.parseDeclaration()
+		if err2 != nil {
+			return nil, err2
+		}
 
-        stmts = append(stmts, stmt)
-    }
+		stmts = append(stmts, stmt)
+	}
 
-    _, err2 := p.consume(RIGHT_BRACE)
-    if err2 != nil {
-        return nil, err2
-    }
+	_, err2 := p.consume(RIGHT_BRACE)
+	if err2 != nil {
+		return nil, err2
+	}
 
-    return stmts, nil
+	return stmts, nil
 }
 
 func (p *Parser) parseExpression() (Expr, *LoxError) {
@@ -157,31 +332,77 @@ func (p *Parser) parseExpression() (Expr, *LoxError) {
 }
 
 func (p *Parser) parseAssignment() (Expr, *LoxError) {
-    expr, err := p.parseEquality()
-    if err != nil {
-        return nil, err
-    }
+	expr, err := p.parseOr()
+	if err != nil {
+		return nil, err
+	}
 
-    if p.peek(EQUAL) {
-        equals, err2 := p.consume(EQUAL)
-        if err2 != nil {
-            return nil, err2
-        }
+	if p.peek(EQUAL) {
+		equals, err2 := p.consume(EQUAL)
+		if err2 != nil {
+			return nil, err2
+		}
 
-        v, ok := expr.(*Variable)
-        if !ok {
-            return nil, &LoxError{File: equals.File, Line: equals.Line, Col: equals.Col, Number: InvalidAssignment, Msg: "Invalid assignment target."}
-        }
+		v, ok := expr.(*Variable)
+		if !ok {
+			return nil, &LoxError{File: equals.File, Line: equals.Line, Col: equals.Col, Number: InvalidAssignment, Msg: "Invalid assignment target."}
+		}
 
-        assignment, err3 := p.parseAssignment()
-        if err3 != nil {
-            return nil, err3
-        }
+		assignment, err3 := p.parseAssignment()
+		if err3 != nil {
+			return nil, err3
+		}
 
-        return &Assign{Name: v.Name, Value: assignment}, nil
-    }
-    
-    return expr, nil
+		return &Assign{Name: v.Name, Value: assignment}, nil
+	}
+
+	return expr, nil
+}
+
+func (p *Parser) parseOr() (Expr, *LoxError) {
+	left, err := p.parseAnd()
+	if err != nil {
+		return nil, err
+	}
+
+	if !p.peek(OR) {
+		return left, nil
+	}
+
+	op, err2 := p.consume(OR)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	right, err3 := p.parseAnd()
+	if err3 != nil {
+		return nil, err3
+	}
+
+	return &Logical{Left: left, Operator: *op, Right: right}, nil
+}
+
+func (p *Parser) parseAnd() (Expr, *LoxError) {
+	left, err := p.parseEquality()
+	if err != nil {
+		return nil, err
+	}
+
+	if !p.peek(AND) {
+		return left, nil
+	}
+
+	op, err2 := p.consume(AND)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	right, err3 := p.parseEquality()
+	if err3 != nil {
+		return nil, err3
+	}
+
+	return &Logical{Left: left, Operator: *op, Right: right}, nil
 }
 
 func (p *Parser) parseEquality() (Expr, *LoxError) {

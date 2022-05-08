@@ -65,6 +65,47 @@ func (interp *Interpreter) AcceptBlockStmt(b *Block) (interface{}, error) {
 	return nil, nil
 }
 
+func (interp *Interpreter) AcceptIfStmt(iff *If) (interface{}, error) {
+	cond, err := interp.evaluate(iff.Condition)
+	if err != nil {
+		return nil, err
+	}
+
+	if interp.isTruthy(cond) {
+		if res, err2 := interp.execute(iff.Body); err2 != nil {
+			return nil, err2
+		} else {
+			return res, nil
+		}
+	}
+
+	if iff.ElseBody != nil {
+		return interp.execute(iff.ElseBody)
+	}
+
+	return nil, nil
+}
+
+func (interp *Interpreter) AcceptWhileStmt(w *While) (interface{}, error) {
+	for {
+		cond, err := interp.evaluate(w.Condition)
+		if err != nil {
+			return nil, err
+		}
+
+		if !interp.isTruthy(cond) {
+			break
+		}
+
+		_, err2 := interp.execute(w.Body)
+		if err2 != nil {
+			return nil, err2
+		}
+	}
+
+	return nil, nil
+}
+
 func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, error) {
 	var init interface{} = nil
 
@@ -247,6 +288,21 @@ func (interp *Interpreter) AcceptVariableExpr(v *Variable) (interface{}, error) 
 	return val, nil
 }
 
+func (interp *Interpreter) AcceptLogicalExpr(l *Logical) (interface{}, error) {
+	left, err := interp.evaluate(l.Left)
+	if err != nil {
+		return nil, err
+	}
+
+	if interp.isTruthy(left) && l.Operator.Type == OR {
+		return left, nil
+	} else if !interp.isTruthy(left) && l.Operator.Type == AND {
+		return left, nil
+	}
+
+	return interp.evaluate(l.Right)
+}
+
 func (interp *Interpreter) checkNumberOperand(op Token, r interface{}) error {
 	if _, ok := r.(float64); !ok {
 		return &LoxError{
@@ -273,7 +329,7 @@ func (interp *Interpreter) checkNumberOperands(op Token, l, r interface{}) error
 }
 
 func (interp *Interpreter) isTruthy(v interface{}) bool {
-	if v == nil {
+	if _, ok := v.(Nil); ok {
 		return false
 	}
 
@@ -299,4 +355,8 @@ func (interp *Interpreter) isEqual(lv, rv interface{}) bool {
 
 func (interp *Interpreter) evaluate(expr Expr) (interface{}, error) {
 	return expr.Accept(interp)
+}
+
+func (interp *Interpreter) execute(stmt Stmt) (interface{}, error) {
+	return stmt.Accept(interp)
 }
