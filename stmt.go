@@ -45,6 +45,18 @@ func (va *Var) Accept(v StmtVisitor) (interface{}, error) {
 	return v.AcceptVarStmt(va)
 }
 
+// ================ If ================
+
+type If struct {
+	Condition Expr
+	Body      Stmt
+	ElseBody  Stmt
+}
+
+func (i *If) Accept(v StmtVisitor) (interface{}, error) {
+	return v.AcceptIfStmt(i)
+}
+
 // ================ StmtVisitor ================
 
 type StmtVisitor interface {
@@ -52,4 +64,5 @@ type StmtVisitor interface {
 	AcceptExpressionStmt(*Expression) (interface{}, error)
 	AcceptPrintStmt(*Print) (interface{}, error)
 	AcceptVarStmt(*Var) (interface{}, error)
+	AcceptIfStmt(*If) (interface{}, error)
 }
