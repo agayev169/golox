@@ -68,6 +68,18 @@ func (va *Variable) Accept(v ExprVisitor) (interface{}, error) {
 	return v.AcceptVariableExpr(va)
 }
 
+// ================ Logical ================
+
+type Logical struct {
+	Left     Expr
+	Operator Token
+	Right    Expr
+}
+
+func (l *Logical) Accept(v ExprVisitor) (interface{}, error) {
+	return v.AcceptLogicalExpr(l)
+}
+
 // ================ ExprVisitor ================
 
 type ExprVisitor interface {
@@ -77,4 +89,5 @@ type ExprVisitor interface {
 	AcceptLiteralExpr(*Literal) (interface{}, error)
 	AcceptUnaryExpr(*Unary) (interface{}, error)
 	AcceptVariableExpr(*Variable) (interface{}, error)
+	AcceptLogicalExpr(*Logical) (interface{}, error)
 }
