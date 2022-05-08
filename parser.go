@@ -39,15 +39,6 @@ func (p *Parser) parseDeclaration() (Stmt, *LoxError) {
 		return s, nil
 	}
 
-    if p.peek(LEFT_BRACE) {
-        stmts, err := p.parseBlock()
-        if err != nil {
-            return nil, err
-        }
-
-        return &Block{Stmts: stmts}, nil
-    }
-
 	return p.parseStmt()
 }
 
@@ -89,7 +80,14 @@ func (p *Parser) parseVarDeclaration() (Stmt, *LoxError) {
 func (p *Parser) parseStmt() (Stmt, *LoxError) {
 	if p.peek(PRINT) {
 		return p.parsePrintStmt()
-	}
+	} else if p.peek(LEFT_BRACE) {
+        stmts, err := p.parseBlock()
+        if err != nil {
+            return nil, err
+        }
+
+        return &Block{Stmts: stmts}, nil
+    }
 
 	return p.parseExprStmt()
 }
