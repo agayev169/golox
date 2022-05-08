@@ -1,6 +1,9 @@
 package golox
 
-import "fmt"
+import (
+	"container/ring"
+	"fmt"
+)
 
 type Parser struct {
 	tokens  []Token
@@ -197,7 +200,7 @@ func (p *Parser) parseExpression() (Expr, *LoxError) {
 }
 
 func (p *Parser) parseAssignment() (Expr, *LoxError) {
-    expr, err := p.parseEquality()
+    expr, err := p.parseOr()
     if err != nil {
         return nil, err
     }
@@ -222,6 +225,52 @@ func (p *Parser) parseAssignment() (Expr, *LoxError) {
     }
     
     return expr, nil
+}
+
+func (p *Parser) parseOr() (Expr, *LoxError) {
+    left, err := p.parseAnd()
+    if err != nil {
+        return nil, err
+    }
+
+    if !p.peek(OR) {
+        return left, nil
+    }
+
+    op, err2 := p.consume(OR)
+    if err2 != nil {
+        return nil, err2
+    }
+
+    right, err3 := p.parseAnd()
+    if err3 != nil {
+        return nil, err3
+    }
+
+    return &Logical{Left: left, Operator: *op, Right: right}, nil
+}
+
+func (p *Parser) parseAnd() (Expr, *LoxError) {
+    left, err := p.parseEquality()
+    if err != nil {
+        return nil, err
+    }
+
+    if !p.peek(AND) {
+        return left, nil
+    }
+
+    op, err2 := p.consume(AND)
+    if err2 != nil {
+        return nil, err2
+    }
+
+    right, err3 := p.parseEquality()
+    if err3 != nil {
+        return nil, err3
+    }
+
+    return &Logical{Left: left, Operator: *op, Right: right}, nil
 }
 
 func (p *Parser) parseEquality() (Expr, *LoxError) {
