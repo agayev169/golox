@@ -91,6 +91,8 @@ func (p *Parser) parseStmt() (Stmt, *LoxError) {
 		return &Block{Stmts: stmts}, nil
 	} else if p.peek(IF) {
 		return p.parseIfStmt()
+	} else if p.peek(WHILE) {
+		return p.parseWhileStmt()
 	}
 
 	return p.parseExprStmt()
@@ -153,6 +155,32 @@ func (p *Parser) parseIfStmt() (Stmt, *LoxError) {
 	}
 
 	return &If{Condition: expr, Body: body, ElseBody: elseBody}, nil
+}
+
+func (p *Parser) parseWhileStmt() (Stmt, *LoxError) {
+	if _, err := p.consume(WHILE); err != nil {
+		return nil, err
+	}
+
+	if _, err := p.consume(LEFT_PAREN); err != nil {
+		return nil, err
+	}
+
+	expr, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err2 := p.consume(RIGHT_PAREN); err2 != nil {
+		return nil, err2
+	}
+
+	body, err2 := p.parseStmt()
+	if err2 != nil {
+		return nil, err2
+	}
+
+	return &While{Condition: expr, Body: body}, nil
 }
 
 func (p *Parser) parseExprStmt() (Stmt, *LoxError) {
