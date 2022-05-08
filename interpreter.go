@@ -309,7 +309,7 @@ func (interp *Interpreter) checkNumberOperands(op Token, l, r interface{}) error
 }
 
 func (interp *Interpreter) isTruthy(v interface{}) bool {
-	if v == nil {
+	if _, ok := v.(Nil); ok {
 		return false
 	}
 
