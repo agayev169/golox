@@ -65,6 +65,27 @@ func (interp *Interpreter) AcceptBlockStmt(b *Block) (interface{}, error) {
 	return nil, nil
 }
 
+func (interp *Interpreter) AcceptIfStmt(iff *If) (interface{}, error) {
+    cond, err := interp.evaluate(iff.Condition)
+    if err != nil {
+        return nil, err
+    }
+
+    if interp.isTruthy(cond) {
+        if res, err2 := interp.execute(iff.Body); err2 != nil {
+            return nil, err2
+        } else {
+            return res, nil
+        }
+    }
+
+    if iff.ElseBody != nil {
+        return interp.execute(iff.ElseBody)
+    }
+
+    return nil, nil
+}
+
 func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, error) {
 	var init interface{} = nil
 
@@ -299,4 +320,8 @@ func (interp *Interpreter) isEqual(lv, rv interface{}) bool {
 
 func (interp *Interpreter) evaluate(expr Expr) (interface{}, error) {
 	return expr.Accept(interp)
+}
+
+func (interp *Interpreter) execute(stmt Stmt) (interface{}, error) {
+    return stmt.Accept(interp)
 }
