@@ -1,11 +1,12 @@
 program             declaration* EOF ;
 declaration         varDecl | statement ;
 varDecl             "var" IDENTIFIER ( "=" expression )? ";" ;
-statement           exprStmt | printStmt | block | ifStmt ;
+statement           exprStmt | printStmt | block | ifStmt | whileStmt ;
 ifStmt              "if" "(" expression ")" statement ("else" statement)? ;
 exprStmt            expression ";" ;
 printStmt           "print" expression ";" ;
 block               "{" declaration* "}" ;
+whileStmt           "while" "(" expression ")" statement ;
 expression          asignment ;
 asignment           IDENTIFIER "=" assignment | logic_or ;
 logic_or            logic_and ( "or" logic_and )* ;
