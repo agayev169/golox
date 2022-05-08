@@ -117,5 +117,7 @@ if __name__ == "__main__":
             ("Expression", [("expr", "Expr")]),
             ("Print", [("expr", "Expr")]),
             ("Var", [("name", "Token"), ("initializer", "Expr")]),
+            ("If", [("condition", "Expr"), ("body", "Stmt"),
+                    ("elseBody", "Stmt")]),
         ],
     )
