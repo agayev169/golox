@@ -1,5 +1,7 @@
 package golox
 
+import "fmt"
+
 type Env struct {
 	vars      map[string]interface{}
 	enclosing *Env
@@ -9,8 +11,12 @@ func NewEnv(enclosing *Env) *Env {
 	return &Env{vars: make(map[string]interface{}), enclosing: enclosing}
 }
 
-func (e *Env) Define(name string, val interface{}) *LoxError {
-	e.vars[name] = val
+func (e *Env) Define(name Token, val interface{}) *LoxError {
+	if _, ok := e.vars[name.Lexeme]; ok {
+		return genError(name, NameAlreadyDefined, fmt.Sprintf("Cannot redefine %s\n", name.Lexeme))
+	}
+
+	e.vars[name.Lexeme] = val
 
 	return nil
 }
@@ -33,7 +39,7 @@ func (e *Env) Assign(name Token, value interface{}) *LoxError {
 			return genUndefVarError(name)
 		}
 
-        return e.enclosing.Assign(name, value)
+		return e.enclosing.Assign(name, value)
 	}
 
 	e.vars[name.Lexeme] = value
