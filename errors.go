@@ -8,10 +8,12 @@ const (
 	UnexpectedChar LoxErrorNumber = iota
 	UnterminatedString
 	UnfinishedExpression
-	RuntimeError
 	UndefinedVariable
-    UnassignedVariable
+	UnassignedVariable
 	InvalidAssignment
+	ArgumentLimitExceeded
+	InvalidCall
+	InvalidArity
 )
 
 type LoxError struct {
@@ -33,5 +35,15 @@ func genUndefVarError(t Token) *LoxError {
 		Col:    t.Col,
 		Number: UndefinedVariable,
 		Msg:    fmt.Sprintf("Undefined variable %s", t.Lexeme),
+	}
+}
+
+func genError(t Token, num LoxErrorNumber, msg string) *LoxError {
+	return &LoxError{
+		File:   t.File,
+		Line:   t.Line,
+		Col:    t.Col,
+		Number: num,
+		Msg:    msg,
 	}
 }
