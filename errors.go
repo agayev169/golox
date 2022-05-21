@@ -17,6 +17,7 @@ const (
 	ParamLimitExceeded
 	InvalidParamName
 	NameAlreadyDefined
+	ReturnOutsideFunc
 )
 
 var errorNames = map[LoxErrorNumber]string{
@@ -32,6 +33,7 @@ var errorNames = map[LoxErrorNumber]string{
 	ParamLimitExceeded:    "Parameter limit exceeded",
 	InvalidParamName:      "Invalid parameter name",
 	NameAlreadyDefined:    "Name already defined",
+	ReturnOutsideFunc:     "Return outside function",
 }
 
 type LoxError struct {
