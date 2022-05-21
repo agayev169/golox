@@ -14,7 +14,25 @@ const (
 	ArgumentLimitExceeded
 	InvalidCall
 	InvalidArity
+	ParamLimitExceeded
+	InvalidParamName
+	NameAlreadyDefined
 )
+
+var errorNames = map[LoxErrorNumber]string{
+	UnexpectedChar:        "Unexpected character",
+	UnterminatedString:    "Unterminated string",
+	UnfinishedExpression:  "Unfinished expression",
+	UndefinedVariable:     "Undefined variable",
+	UnassignedVariable:    "Unassigned variable",
+	InvalidAssignment:     "Invalid assignment",
+	ArgumentLimitExceeded: "Argument limit exceeded",
+	InvalidCall:           "Invalid call",
+	InvalidArity:          "Invalid arity",
+	ParamLimitExceeded:    "Parameter limit exceeded",
+	InvalidParamName:      "Invalid parameter name",
+	NameAlreadyDefined:    "Name already defined",
+}
 
 type LoxError struct {
 	File   string
@@ -25,17 +43,11 @@ type LoxError struct {
 }
 
 func (e *LoxError) Error() string {
-	return fmt.Sprintf("err #%d, %s:%d:%d: %s", e.Number, e.File, e.Line, e.Col, e.Msg)
+	return fmt.Sprintf("ERR '%s': %s:%d:%d: %s", errorNames[e.Number], e.File, e.Line, e.Col, e.Msg)
 }
 
 func genUndefVarError(t Token) *LoxError {
-	return &LoxError{
-		File:   t.File,
-		Line:   t.Line,
-		Col:    t.Col,
-		Number: UndefinedVariable,
-		Msg:    fmt.Sprintf("Undefined variable %s", t.Lexeme),
-	}
+	return genError(t, UndefinedVariable, fmt.Sprintf("Undefined variable %s", t.Lexeme))
 }
 
 func genError(t Token, num LoxErrorNumber, msg string) *LoxError {
