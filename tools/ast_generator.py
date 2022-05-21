@@ -28,7 +28,7 @@ def define_ast(
         f.writelines(
             [
                 f"type {base_name} interface {{\n",
-                f"   Accept(v {visitor_name}) (interface{{}}, error)\n",
+                f"   Accept(v {visitor_name}) (interface{{}}, *LoxError)\n",
                 "}\n",
                 "\n",
             ]
@@ -57,7 +57,7 @@ def define_ast(
                 varName = name[:2].lower()
 
             lines = lines + [
-                f"func ({varName} *{name}) Accept(v {visitor_name}) (interface{{}}, error) {{\n",
+                f"func ({varName} *{name}) Accept(v {visitor_name}) (interface{{}}, *LoxError) {{\n",
                 f"    return v.Accept{name}{base_name}({varName})\n",
                 "}\n",
             ]
@@ -66,7 +66,7 @@ def define_ast(
             f.writelines(lines)
 
             visitor_methods += [
-                f"    Accept{name}{base_name}(*{name}) (interface{{}}, error)\n"]
+                f"    Accept{name}{base_name}(*{name}) (interface{{}}, *LoxError)\n"]
 
         # Visitor
         f.writelines(
