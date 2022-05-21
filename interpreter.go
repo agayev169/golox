@@ -10,18 +10,18 @@ type Interpreter struct {
 func NewInterpreter() *Interpreter {
 	env := NewEnv(nil)
 
-	addFunc(env, "clock", LoxClock{})
+	if err := addFunc(env, Token{Lexeme: "clock", Type: IDENTIFIER}, &LoxClock{}); err != nil {
+		panic(err)
+	}
 
 	return &Interpreter{globEnv: env, env: env}
 }
 
-func addFunc(env *Env, name string, f Callable) {
-	if err := env.Define(name, f); err != nil {
-		panic(fmt.Sprintf("Failed to add %s.", name))
-	}
+func addFunc(env *Env, name Token, f Callable) *LoxError {
+	return env.Define(name, f)
 }
 
-func (interp *Interpreter) Interpret(stmts []Stmt) (interface{}, error) {
+func (interp *Interpreter) Interpret(stmts []Stmt) (interface{}, *LoxError) {
 	var res interface{}
 
 	for _, stmt := range stmts {
@@ -36,7 +36,15 @@ func (interp *Interpreter) Interpret(stmts []Stmt) (interface{}, error) {
 	return res, nil
 }
 
-func (interp *Interpreter) AcceptExpressionStmt(expr *Expression) (interface{}, error) {
+func (interp *Interpreter) AcceptFuncStmt(f *Func) (interface{}, *LoxError) {
+	if err := addFunc(interp.env, f.Name, NewLoxFunction(f, interp.env)); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (interp *Interpreter) AcceptExpressionStmt(expr *Expression) (interface{}, *LoxError) {
 	res, err := interp.evaluate(expr.Expr)
 	if err != nil {
 		return nil, err
@@ -45,7 +53,7 @@ func (interp *Interpreter) AcceptExpressionStmt(expr *Expression) (interface{}, 
 	return res, nil
 }
 
-func (interp *Interpreter) AcceptPrintStmt(expr *Print) (interface{}, error) {
+func (interp *Interpreter) AcceptPrintStmt(expr *Print) (interface{}, *LoxError) {
 	val, err := interp.evaluate(expr.Expr)
 	if err != nil {
 		return nil, err
@@ -60,23 +68,33 @@ func (interp *Interpreter) AcceptPrintStmt(expr *Print) (interface{}, error) {
 	return nil, nil
 }
 
-func (interp *Interpreter) AcceptBlockStmt(b *Block) (interface{}, error) {
-	interp.env = NewEnv(interp.env)
-	defer func() {
-		interp.env = interp.env.enclosing
-	}()
-
-	for _, s := range b.Stmts {
-		_, err := s.Accept(interp)
-		if err != nil {
-			return nil, err
-		}
+func (interp *Interpreter) AcceptBlockStmt(b *Block) (interface{}, *LoxError) {
+	err := interp.ExecuteBlock(b.Stmts, NewEnv(interp.env))
+	if err != nil {
+		return nil, err
 	}
 
 	return nil, nil
 }
 
-func (interp *Interpreter) AcceptIfStmt(iff *If) (interface{}, error) {
+func (interp *Interpreter) ExecuteBlock(ss []Stmt, env *Env) *LoxError {
+	oldEnv := interp.env
+	interp.env = env
+	defer func() {
+		interp.env = oldEnv
+	}()
+
+	for _, s := range ss {
+		_, err := s.Accept(interp)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (interp *Interpreter) AcceptIfStmt(iff *If) (interface{}, *LoxError) {
 	cond, err := interp.evaluate(iff.Condition)
 	if err != nil {
 		return nil, err
@@ -97,7 +115,7 @@ func (interp *Interpreter) AcceptIfStmt(iff *If) (interface{}, error) {
 	return nil, nil
 }
 
-func (interp *Interpreter) AcceptWhileStmt(w *While) (interface{}, error) {
+func (interp *Interpreter) AcceptWhileStmt(w *While) (interface{}, *LoxError) {
 	for {
 		cond, err := interp.evaluate(w.Condition)
 		if err != nil {
@@ -117,7 +135,7 @@ func (interp *Interpreter) AcceptWhileStmt(w *While) (interface{}, error) {
 	return nil, nil
 }
 
-func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, error) {
+func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, *LoxError) {
 	var init interface{} = nil
 
 	if v.Initializer != nil {
@@ -129,14 +147,14 @@ func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, error) {
 		init = val
 	}
 
-	if err := interp.env.Define(v.Name.Lexeme, init); err != nil {
+	if err := interp.env.Define(v.Name, init); err != nil {
 		return nil, err
 	}
 
 	return nil, nil
 }
 
-func (interp *Interpreter) AcceptAssignExpr(a *Assign) (interface{}, error) {
+func (interp *Interpreter) AcceptAssignExpr(a *Assign) (interface{}, *LoxError) {
 	val, err := interp.evaluate(a.Value)
 	if err != nil {
 		return nil, err
@@ -150,15 +168,15 @@ func (interp *Interpreter) AcceptAssignExpr(a *Assign) (interface{}, error) {
 	return nil, nil
 }
 
-func (interp *Interpreter) AcceptLiteralExpr(l *Literal) (interface{}, error) {
+func (interp *Interpreter) AcceptLiteralExpr(l *Literal) (interface{}, *LoxError) {
 	return l.Value, nil
 }
 
-func (interp *Interpreter) AcceptGroupingExpr(g *Grouping) (interface{}, error) {
+func (interp *Interpreter) AcceptGroupingExpr(g *Grouping) (interface{}, *LoxError) {
 	return g.Expr.Accept(interp)
 }
 
-func (interp *Interpreter) AcceptUnaryExpr(u *Unary) (interface{}, error) {
+func (interp *Interpreter) AcceptUnaryExpr(u *Unary) (interface{}, *LoxError) {
 	v, err := u.Right.Accept(interp)
 
 	if err != nil {
@@ -184,7 +202,7 @@ func (interp *Interpreter) AcceptUnaryExpr(u *Unary) (interface{}, error) {
 	}
 }
 
-func (interp *Interpreter) AcceptCallExpr(c *Call) (interface{}, error) {
+func (interp *Interpreter) AcceptCallExpr(c *Call) (interface{}, *LoxError) {
 	callee, err := interp.evaluate(c.Callee)
 	if err != nil {
 		return nil, err
@@ -213,7 +231,7 @@ func (interp *Interpreter) AcceptCallExpr(c *Call) (interface{}, error) {
 	return cf.Call(interp, args)
 }
 
-func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, error) {
+func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, *LoxError) {
 	lv, err := b.Left.Accept(interp)
 
 	if err != nil {
@@ -312,7 +330,7 @@ func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, error) {
 	}
 }
 
-func (interp *Interpreter) AcceptVariableExpr(v *Variable) (interface{}, error) {
+func (interp *Interpreter) AcceptVariableExpr(v *Variable) (interface{}, *LoxError) {
 	val, err := interp.env.Get(v.Name)
 	if err != nil {
 		return nil, err
@@ -330,7 +348,7 @@ func (interp *Interpreter) AcceptVariableExpr(v *Variable) (interface{}, error) 
 	return val, nil
 }
 
-func (interp *Interpreter) AcceptLogicalExpr(l *Logical) (interface{}, error) {
+func (interp *Interpreter) AcceptLogicalExpr(l *Logical) (interface{}, *LoxError) {
 	left, err := interp.evaluate(l.Left)
 	if err != nil {
 		return nil, err
@@ -345,7 +363,7 @@ func (interp *Interpreter) AcceptLogicalExpr(l *Logical) (interface{}, error) {
 	return interp.evaluate(l.Right)
 }
 
-func (interp *Interpreter) checkNumberOperand(op Token, r interface{}) error {
+func (interp *Interpreter) checkNumberOperand(op Token, r interface{}) *LoxError {
 	if _, ok := r.(float64); !ok {
 		return &LoxError{
 			Number: UnexpectedChar, File: op.File, Line: op.Line, Col: op.Col,
@@ -356,7 +374,7 @@ func (interp *Interpreter) checkNumberOperand(op Token, r interface{}) error {
 	return nil
 }
 
-func (interp *Interpreter) checkNumberOperands(op Token, l, r interface{}) error {
+func (interp *Interpreter) checkNumberOperands(op Token, l, r interface{}) *LoxError {
 	_, ok1 := l.(float64)
 	_, ok2 := r.(float64)
 
@@ -395,10 +413,10 @@ func (interp *Interpreter) isEqual(lv, rv interface{}) bool {
 	return lv == rv
 }
 
-func (interp *Interpreter) evaluate(expr Expr) (interface{}, error) {
+func (interp *Interpreter) evaluate(expr Expr) (interface{}, *LoxError) {
 	return expr.Accept(interp)
 }
 
-func (interp *Interpreter) execute(stmt Stmt) (interface{}, error) {
+func (interp *Interpreter) execute(stmt Stmt) (interface{}, *LoxError) {
 	return stmt.Accept(interp)
 }
