@@ -30,7 +30,14 @@ func (p *Parser) Parse() ([]Stmt, *LoxError) {
 }
 
 func (p *Parser) parseDeclaration() (Stmt, *LoxError) {
-	if p.peek(VAR) {
+	if p.peek(FUN) {
+		s, err := p.parseFunDeclaration()
+		if err != nil {
+			return nil, err
+		}
+
+		return s, nil
+	} else if p.peek(VAR) {
 		s, err := p.parseVarDeclaration()
 		if err != nil {
 			p.sync()
@@ -42,6 +49,68 @@ func (p *Parser) parseDeclaration() (Stmt, *LoxError) {
 	}
 
 	return p.parseStmt()
+}
+
+func (p *Parser) parseFunDeclaration() (Stmt, *LoxError) {
+	if _, err := p.consume(FUN); err != nil {
+		return nil, err
+	}
+
+	name, err := p.consume(IDENTIFIER)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(LEFT_PAREN)
+	if err != nil {
+		return nil, err
+	}
+
+	params, err := p.parseParams()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(RIGHT_PAREN)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := p.parseBlock()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Func{Name: *name, Params: params, Body: b}, nil
+}
+
+func (p *Parser) parseParams() ([]Token, *LoxError) {
+	res := make([]Token, 0)
+
+	firstArg := true
+
+	for !p.peek(RIGHT_PAREN) {
+		if !firstArg {
+			if _, err := p.consume(COMMA); err != nil {
+				return nil, err
+			}
+		}
+		t := p.getNextToken()
+
+		if len(res) >= 255 {
+			return nil, genError(t, ParamLimitExceeded, "Can't have more than 255 parameters.")
+		}
+
+		if t.Type != IDENTIFIER {
+			return nil, genError(t, InvalidParamName, fmt.Sprintf("Expect parameter name, got %s.", t.Lexeme))
+		}
+
+		res = append(res, t)
+
+		firstArg = false
+	}
+
+	return res, nil
 }
 
 func (p *Parser) parseVarDeclaration() (Stmt, *LoxError) {
