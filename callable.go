@@ -1,6 +1,7 @@
 package golox
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -25,20 +26,41 @@ func (f *LoxFunction) GetArity() int {
 }
 
 func (f *LoxFunction) Call(i *Interpreter, args []interface{}) (interface{}, *LoxError) {
+	return f.call(i, args)
+}
+
+func (f *LoxFunction) call(i *Interpreter, args []interface{}) (ret interface{}, err *LoxError) {
+	defer func() {
+		if r := recover(); r != nil {
+			c, ok := r.(*Control)
+			if !ok || c.Type != Ret {
+				panic(r)
+			}
+
+			ret = c.Val
+		}
+	}()
+
+	ret, err = nil, nil
+
 	env := NewEnv(f.closure)
 
 	for i, param := range f.decl.Params {
 		arg := args[i]
-		if err := env.Define(param, arg); err != nil {
-			return nil, err
+		if err = env.Define(param, arg); err != nil {
+			return
 		}
 	}
 
-	if err := i.ExecuteBlock(f.decl.Body, env); err != nil {
-		return nil, err
+	if err = i.ExecuteBlock(f.decl.Body, env); err != nil {
+		return
 	}
 
-	return nil, nil
+	return
+}
+
+func (f *LoxFunction) String() string {
+	return fmt.Sprintf("<fn %s>", f.decl.Name.Lexeme)
 }
 
 // Clock
