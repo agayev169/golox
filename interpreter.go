@@ -3,11 +3,22 @@ package golox
 import "fmt"
 
 type Interpreter struct {
-	env *Env
+	globEnv *Env
+	env     *Env
 }
 
 func NewInterpreter() *Interpreter {
-	return &Interpreter{env: NewEnv(nil)}
+	env := NewEnv(nil)
+
+	addFunc(env, "clock", LoxClock{})
+
+	return &Interpreter{globEnv: env, env: env}
+}
+
+func addFunc(env *Env, name string, f Callable) {
+	if err := env.Define(name, f); err != nil {
+		panic(fmt.Sprintf("Failed to add %s.", name))
+	}
 }
 
 func (interp *Interpreter) Interpret(stmts []Stmt) (interface{}, error) {
@@ -118,7 +129,9 @@ func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, error) {
 		init = val
 	}
 
-	interp.env.Define(v.Name.Lexeme, init)
+	if err := interp.env.Define(v.Name.Lexeme, init); err != nil {
+		return nil, err
+	}
 
 	return nil, nil
 }
@@ -169,6 +182,35 @@ func (interp *Interpreter) AcceptUnaryExpr(u *Unary) (interface{}, error) {
 		Number: UnexpectedChar, File: u.Operator.File, Line: u.Operator.Line, Col: u.Operator.Col,
 		Msg: fmt.Sprintf("Unsupported operator type `%s`.", u.Operator.Lexeme),
 	}
+}
+
+func (interp *Interpreter) AcceptCallExpr(c *Call) (interface{}, error) {
+	callee, err := interp.evaluate(c.Callee)
+	if err != nil {
+		return nil, err
+	}
+
+	cf, ok := callee.(Callable)
+	if !ok {
+		return nil, genError(c.Paren, InvalidCall, "Can only call functions and classes.")
+	}
+
+	if cf.GetArity() != len(c.Args) {
+		return nil, genError(c.Paren, InvalidArity,
+			fmt.Sprintf("Expected %d arguments but got %d.", cf.GetArity(), len(c.Args)))
+	}
+
+	args := make([]interface{}, 0, len(c.Args))
+	for _, arg := range c.Args {
+		a, err2 := interp.evaluate(arg)
+		if err2 != nil {
+			return nil, err2
+		}
+
+		args = append(args, a)
+	}
+
+	return cf.Call(interp, args)
 }
 
 func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, error) {
