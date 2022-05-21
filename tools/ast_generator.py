@@ -28,7 +28,7 @@ def define_ast(
         f.writelines(
             [
                 f"type {base_name} interface {{\n",
-                f"   Accept(v {visitor_name}) (interface{{}}, error)\n",
+                f"   Accept(v {visitor_name}) (interface{{}}, *LoxError)\n",
                 "}\n",
                 "\n",
             ]
@@ -57,7 +57,7 @@ def define_ast(
                 varName = name[:2].lower()
 
             lines = lines + [
-                f"func ({varName} *{name}) Accept(v {visitor_name}) (interface{{}}, error) {{\n",
+                f"func ({varName} *{name}) Accept(v {visitor_name}) (interface{{}}, *LoxError) {{\n",
                 f"    return v.Accept{name}{base_name}({varName})\n",
                 "}\n",
             ]
@@ -66,7 +66,7 @@ def define_ast(
             f.writelines(lines)
 
             visitor_methods += [
-                f"    Accept{name}{base_name}(*{name}) (interface{{}}, error)\n"]
+                f"    Accept{name}{base_name}(*{name}) (interface{{}}, *LoxError)\n"]
 
         # Visitor
         f.writelines(
@@ -104,6 +104,7 @@ if __name__ == "__main__":
             ("Grouping", [("expr", "Expr")]),
             ("Literal", [("value", "interface{}")]),
             ("Unary", [("operator", "Token"), ("right", "Expr")]),
+            ("Call", [("callee", "Expr"), ("paren", "Token"), ("args", "[]Expr")]),
             ("Variable", [("name", "Token")]),
             ("Logical", [("left", "Expr"),
                          ("operator", "Token"), ("right", "Expr")]),
@@ -119,8 +120,11 @@ if __name__ == "__main__":
             ("Expression", [("expr", "Expr")]),
             ("Print", [("expr", "Expr")]),
             ("Var", [("name", "Token"), ("initializer", "Expr")]),
+            ("Func", [("name", "Token"), ("params", "[]Token"),
+                      ("body", "[]Stmt")]),
             ("If", [("condition", "Expr"), ("body", "Stmt"),
                     ("elseBody", "Stmt")]),
             ("While", [("condition", "Expr"), ("body", "Stmt")]),
+            ("Return", [("keyword", "Token"), ("value", "Expr")])
         ],
     )

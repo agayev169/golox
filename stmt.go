@@ -1,7 +1,7 @@
 package golox
 
 type Stmt interface {
-	Accept(v StmtVisitor) (interface{}, error)
+	Accept(v StmtVisitor) (interface{}, *LoxError)
 }
 
 // ================ Block ================
@@ -10,7 +10,7 @@ type Block struct {
 	Stmts []Stmt
 }
 
-func (b *Block) Accept(v StmtVisitor) (interface{}, error) {
+func (b *Block) Accept(v StmtVisitor) (interface{}, *LoxError) {
 	return v.AcceptBlockStmt(b)
 }
 
@@ -20,7 +20,7 @@ type Expression struct {
 	Expr Expr
 }
 
-func (e *Expression) Accept(v StmtVisitor) (interface{}, error) {
+func (e *Expression) Accept(v StmtVisitor) (interface{}, *LoxError) {
 	return v.AcceptExpressionStmt(e)
 }
 
@@ -30,7 +30,7 @@ type Print struct {
 	Expr Expr
 }
 
-func (p *Print) Accept(v StmtVisitor) (interface{}, error) {
+func (p *Print) Accept(v StmtVisitor) (interface{}, *LoxError) {
 	return v.AcceptPrintStmt(p)
 }
 
@@ -41,8 +41,20 @@ type Var struct {
 	Initializer Expr
 }
 
-func (va *Var) Accept(v StmtVisitor) (interface{}, error) {
+func (va *Var) Accept(v StmtVisitor) (interface{}, *LoxError) {
 	return v.AcceptVarStmt(va)
+}
+
+// ================ Func ================
+
+type Func struct {
+	Name   Token
+	Params []Token
+	Body   []Stmt
+}
+
+func (f *Func) Accept(v StmtVisitor) (interface{}, *LoxError) {
+	return v.AcceptFuncStmt(f)
 }
 
 // ================ If ================
@@ -53,7 +65,7 @@ type If struct {
 	ElseBody  Stmt
 }
 
-func (i *If) Accept(v StmtVisitor) (interface{}, error) {
+func (i *If) Accept(v StmtVisitor) (interface{}, *LoxError) {
 	return v.AcceptIfStmt(i)
 }
 
@@ -64,17 +76,30 @@ type While struct {
 	Body      Stmt
 }
 
-func (w *While) Accept(v StmtVisitor) (interface{}, error) {
+func (w *While) Accept(v StmtVisitor) (interface{}, *LoxError) {
 	return v.AcceptWhileStmt(w)
+}
+
+// ================ Return ================
+
+type Return struct {
+	Keyword Token
+	Value   Expr
+}
+
+func (r *Return) Accept(v StmtVisitor) (interface{}, *LoxError) {
+	return v.AcceptReturnStmt(r)
 }
 
 // ================ StmtVisitor ================
 
 type StmtVisitor interface {
-	AcceptBlockStmt(*Block) (interface{}, error)
-	AcceptExpressionStmt(*Expression) (interface{}, error)
-	AcceptPrintStmt(*Print) (interface{}, error)
-	AcceptVarStmt(*Var) (interface{}, error)
-	AcceptIfStmt(*If) (interface{}, error)
-	AcceptWhileStmt(*While) (interface{}, error)
+	AcceptBlockStmt(*Block) (interface{}, *LoxError)
+	AcceptExpressionStmt(*Expression) (interface{}, *LoxError)
+	AcceptPrintStmt(*Print) (interface{}, *LoxError)
+	AcceptVarStmt(*Var) (interface{}, *LoxError)
+	AcceptFuncStmt(*Func) (interface{}, *LoxError)
+	AcceptIfStmt(*If) (interface{}, *LoxError)
+	AcceptWhileStmt(*While) (interface{}, *LoxError)
+	AcceptReturnStmt(*Return) (interface{}, *LoxError)
 }
