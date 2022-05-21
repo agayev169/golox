@@ -164,9 +164,32 @@ func (p *Parser) parseStmt() (Stmt, *LoxError) {
 		return p.parseWhileStmt()
 	} else if p.peek(FOR) {
 		return p.parseForStmt()
+	} else if p.peek(RETURN) {
+		return p.parseReturnStmt()
 	}
 
 	return p.parseExprStmt()
+}
+
+func (p *Parser) parseReturnStmt() (Stmt, *LoxError) {
+	ret, err := p.consume(RETURN)
+	if err != nil {
+		return nil, err
+	}
+
+	var val Expr
+	if !p.peek(SEMICOLON) {
+		val, err = p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if _, err = p.consume(SEMICOLON); err != nil {
+		return nil, err
+	}
+
+	return &Return{Keyword: *ret, Value: val}, nil
 }
 
 func (p *Parser) parsePrintStmt() (Stmt, *LoxError) {
