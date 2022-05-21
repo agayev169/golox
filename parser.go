@@ -537,7 +537,15 @@ func (p *Parser) parseCall() (Expr, *LoxError) {
 func (p *Parser) parseArguments() ([]Expr, *LoxError) {
 	res := make([]Expr, 0)
 
+	firstArg := true
+
 	for !p.peek(RIGHT_PAREN) {
+		if !firstArg {
+			if _, err := p.consume(COMMA); err != nil {
+				return nil, err
+			}
+		}
+
 		if len(res) >= 255 {
 			return nil, genError(p.getNextToken(), ArgumentLimitExceeded, "Can't have more than 255 arguments.")
 		}
@@ -548,6 +556,8 @@ func (p *Parser) parseArguments() ([]Expr, *LoxError) {
 		}
 
 		res = append(res, expr)
+
+		firstArg = false
 	}
 
 	return res, nil
