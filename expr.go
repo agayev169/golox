@@ -58,6 +58,18 @@ func (u *Unary) Accept(v ExprVisitor) (interface{}, error) {
 	return v.AcceptUnaryExpr(u)
 }
 
+// ================ Call ================
+
+type Call struct {
+	Callee Expr
+	Paren  Token
+	Args   []Expr
+}
+
+func (c *Call) Accept(v ExprVisitor) (interface{}, error) {
+	return v.AcceptCallExpr(c)
+}
+
 // ================ Variable ================
 
 type Variable struct {
@@ -88,6 +100,7 @@ type ExprVisitor interface {
 	AcceptGroupingExpr(*Grouping) (interface{}, error)
 	AcceptLiteralExpr(*Literal) (interface{}, error)
 	AcceptUnaryExpr(*Unary) (interface{}, error)
+	AcceptCallExpr(*Call) (interface{}, error)
 	AcceptVariableExpr(*Variable) (interface{}, error)
 	AcceptLogicalExpr(*Logical) (interface{}, error)
 }
