@@ -3,7 +3,8 @@ declaration         funDecl | varDecl | statement ;
 funDecl             fun IDENTIFIER "(" parameters? ")" block ;
 parameters          IDENTIFIER ( "," IDENTIFIER )* ;
 varDecl             "var" IDENTIFIER ( "=" expression )? ";" ;
-statement           exprStmt | printStmt | block | ifStmt | whileStmt | forStmt ;
+statement           exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | returnStmt ;
+returnStmt          "return" expression? ";"
 ifStmt              "if" "(" expression ")" statement ("else" statement)? ;
 exprStmt            expression ";" ;
 printStmt           "print" expression ";" ;
