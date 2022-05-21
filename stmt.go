@@ -45,6 +45,18 @@ func (va *Var) Accept(v StmtVisitor) (interface{}, *LoxError) {
 	return v.AcceptVarStmt(va)
 }
 
+// ================ Func ================
+
+type Func struct {
+	Name   Token
+	Params []Token
+	Body   []Stmt
+}
+
+func (f *Func) Accept(v StmtVisitor) (interface{}, *LoxError) {
+	return v.AcceptFuncStmt(f)
+}
+
 // ================ If ================
 
 type If struct {
@@ -75,6 +87,7 @@ type StmtVisitor interface {
 	AcceptExpressionStmt(*Expression) (interface{}, *LoxError)
 	AcceptPrintStmt(*Print) (interface{}, *LoxError)
 	AcceptVarStmt(*Var) (interface{}, *LoxError)
+	AcceptFuncStmt(*Func) (interface{}, *LoxError)
 	AcceptIfStmt(*If) (interface{}, *LoxError)
 	AcceptWhileStmt(*While) (interface{}, *LoxError)
 }
