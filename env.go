@@ -13,7 +13,7 @@ func NewEnv(enclosing *Env) *Env {
 
 func (e *Env) Define(name Token, val interface{}) *LoxError {
 	if _, ok := e.vars[name.Lexeme]; ok {
-		return genError(name, NameAlreadyDefined, fmt.Sprintf("Cannot redefine %s\n", name.Lexeme))
+		return genError(name, NameAlreadyDefined, fmt.Sprintf("Cannot redefine '%s'\n", name.Lexeme))
 	}
 
 	e.vars[name.Lexeme] = val
