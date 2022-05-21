@@ -80,6 +80,17 @@ func (w *While) Accept(v StmtVisitor) (interface{}, *LoxError) {
 	return v.AcceptWhileStmt(w)
 }
 
+// ================ Return ================
+
+type Return struct {
+	Keyword Token
+	Value   Expr
+}
+
+func (r *Return) Accept(v StmtVisitor) (interface{}, *LoxError) {
+	return v.AcceptReturnStmt(r)
+}
+
 // ================ StmtVisitor ================
 
 type StmtVisitor interface {
@@ -90,4 +101,5 @@ type StmtVisitor interface {
 	AcceptFuncStmt(*Func) (interface{}, *LoxError)
 	AcceptIfStmt(*If) (interface{}, *LoxError)
 	AcceptWhileStmt(*While) (interface{}, *LoxError)
+	AcceptReturnStmt(*Return) (interface{}, *LoxError)
 }

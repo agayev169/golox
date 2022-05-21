@@ -125,5 +125,6 @@ if __name__ == "__main__":
             ("If", [("condition", "Expr"), ("body", "Stmt"),
                     ("elseBody", "Stmt")]),
             ("While", [("condition", "Expr"), ("body", "Stmt")]),
+            ("Return", [("keyword", "Token"), ("value", "Expr")])
         ],
     )
