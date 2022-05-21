@@ -497,7 +497,60 @@ func (p *Parser) parseUnary() (Expr, *LoxError) {
 		return &Unary{Operator: t, Right: right}, nil
 	}
 
-	return p.parsePrimary()
+	return p.parseCall()
+}
+
+func (p *Parser) parseCall() (Expr, *LoxError) {
+	pr, err := p.parsePrimary()
+	if err != nil {
+		return nil, err
+	}
+
+	res := pr
+
+	for true {
+		if !p.peek(LEFT_PAREN) {
+			break
+		}
+
+		lp, err2 := p.consume(LEFT_PAREN)
+		if err2 != nil {
+			return nil, err2
+		}
+
+		args, err3 := p.parseArguments()
+		if err3 != nil {
+			return nil, err3
+		}
+
+		_, err4 := p.consume(RIGHT_PAREN)
+		if err4 != nil {
+			return nil, err4
+		}
+
+		res = &Call{Callee: res, Paren: *lp, Args: args}
+	}
+
+	return res, nil
+}
+
+func (p *Parser) parseArguments() ([]Expr, *LoxError) {
+	res := make([]Expr, 0)
+
+	for !p.peek(RIGHT_PAREN) {
+		if len(res) >= 255 {
+			return nil, genError(p.getNextToken(), ArgumentLimitExceeded, "Can't have more than 255 arguments.")
+		}
+
+		expr, err := p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+
+		res = append(res, expr)
+	}
+
+	return res, nil
 }
 
 func (p *Parser) parsePrimary() (Expr, *LoxError) {
