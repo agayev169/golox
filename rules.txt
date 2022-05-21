@@ -1,5 +1,7 @@
 program             declaration* EOF ;
-declaration         varDecl | statement ;
+declaration         funDecl | varDecl | statement ;
+funDecl             fun IDENTIFIER "(" parameters? ")" block ;
+parameters          IDENTIFIER ( "," IDENTIFIER )* ;
 varDecl             "var" IDENTIFIER ( "=" expression )? ";" ;
 statement           exprStmt | printStmt | block | ifStmt | whileStmt | forStmt ;
 ifStmt              "if" "(" expression ")" statement ("else" statement)? ;
