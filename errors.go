@@ -18,6 +18,7 @@ const (
 	InvalidParamName
 	NameAlreadyDefined
 	ReturnOutsideFunc
+	SelfInitialization
 )
 
 var errorNames = map[LoxErrorNumber]string{
@@ -34,6 +35,7 @@ var errorNames = map[LoxErrorNumber]string{
 	InvalidParamName:      "Invalid parameter name",
 	NameAlreadyDefined:    "Name already defined",
 	ReturnOutsideFunc:     "Return outside function",
+	SelfInitialization:    "Variable self initialization",
 }
 
 type LoxError struct {
