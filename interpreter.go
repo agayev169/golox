@@ -181,9 +181,14 @@ func (interp *Interpreter) AcceptAssignExpr(a *Assign) (interface{}, *LoxError) 
 		return nil, err
 	}
 
-	err2 := interp.env.Assign(a.Name, val)
-	if err2 != nil {
-		return nil, err2
+	if d, ok := interp.locals[a]; ok {
+		if err = interp.env.AssignAt(a.Name, val, d); err != nil {
+			return nil, err
+		}
+	} else {
+		if err = interp.globEnv.Assign(a.Name, val); err != nil {
+			return nil, err
+		}
 	}
 
 	return nil, nil
@@ -358,9 +363,16 @@ func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, *LoxError) 
 }
 
 func (interp *Interpreter) AcceptVariableExpr(v *Variable) (interface{}, *LoxError) {
-	val, err := interp.env.Get(v.Name)
-	if err != nil {
-		return nil, err
+	var val interface{}
+	var err *LoxError
+
+	if d, ok := interp.locals[v]; ok {
+		val, err = interp.env.GetAt(v.Name, d)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		val, err = interp.globEnv.Get(v.Name)
 	}
 
 	if val == nil {
