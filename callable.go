@@ -12,6 +12,13 @@ type Callable interface {
 
 // Custom
 
+type FunctionType = int
+
+const (
+	None FunctionType = iota
+	Function
+)
+
 type LoxFunction struct {
 	decl    *Func
 	closure *Env

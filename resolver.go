@@ -5,10 +5,11 @@ import "fmt"
 type Resolver struct {
 	scopes      []map[string]bool
 	interpreter *Interpreter
+	curf        FunctionType
 }
 
 func NewResolver(i *Interpreter) *Resolver {
-	return &Resolver{scopes: make([]map[string]bool, 0), interpreter: i}
+	return &Resolver{scopes: make([]map[string]bool, 0), interpreter: i, curf: None}
 }
 
 func (r *Resolver) Resolve(stmts []Stmt) *LoxError {
@@ -133,6 +134,12 @@ func (r *Resolver) AcceptFuncStmt(f *Func) (interface{}, *LoxError) {
 
 	r.define(f.Name)
 
+	oldf := r.curf
+	r.curf = Function
+	defer func() {
+		r.curf = oldf
+	}()
+
 	r.beginScope()
 	defer r.endScope()
 
@@ -168,6 +175,10 @@ func (r *Resolver) AcceptWhileStmt(w *While) (interface{}, *LoxError) {
 }
 
 func (r *Resolver) AcceptReturnStmt(ret *Return) (interface{}, *LoxError) {
+	if r.curf == None {
+		return nil, genError(ret.Keyword, ReturnOutsideFunc, "return statement cannot be used outside function.")
+	}
+
 	if ret.Value != nil {
 		return nil, r.resolveExpr(ret.Value)
 	}

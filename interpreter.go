@@ -5,7 +5,6 @@ import "fmt"
 type Interpreter struct {
 	globEnv *Env
 	env     *Env
-	isInF   bool
 	locals  map[Expr]int
 }
 
@@ -16,7 +15,7 @@ func NewInterpreter() *Interpreter {
 		panic(err)
 	}
 
-	return &Interpreter{globEnv: env, env: env, isInF: false, locals: make(map[Expr]int)}
+	return &Interpreter{globEnv: env, env: env, locals: make(map[Expr]int)}
 }
 
 func addFunc(env *Env, name Token, f Callable) *LoxError {
@@ -157,10 +156,6 @@ func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, *LoxError) {
 }
 
 func (interp *Interpreter) AcceptReturnStmt(r *Return) (interface{}, *LoxError) {
-	if !interp.isInF {
-		return nil, genError(r.Keyword, ReturnOutsideFunc, "return statement cannot be used outside function.")
-	}
-
 	var ret interface{} = nil
 
 	if r.Value != nil {
@@ -229,12 +224,6 @@ func (interp *Interpreter) AcceptUnaryExpr(u *Unary) (interface{}, *LoxError) {
 }
 
 func (interp *Interpreter) AcceptCallExpr(c *Call) (interface{}, *LoxError) {
-	isInF := interp.isInF
-	defer func() {
-		interp.isInF = isInF
-	}()
-
-	interp.isInF = true
 	callee, err := interp.evaluate(c.Callee)
 	if err != nil {
 		return nil, err
