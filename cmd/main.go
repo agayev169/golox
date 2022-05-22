@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/agayev169/golox"
 )
@@ -30,7 +31,12 @@ func main() {
 func runFile(path string) {
 	f, err := os.Open(path)
 	fatal(err)
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(f)
 
 	r := bufio.NewReader(f)
 
@@ -64,34 +70,39 @@ func runPrompt() {
 }
 
 func run(r *bufio.Reader, interp *golox.Interpreter) (interface{}, error) {
-	bs, err2 := io.ReadAll(r)
+	var lerr *golox.LoxError
+	bs, err := io.ReadAll(r)
 
-	if err2 != nil {
-		return nil, err2
+	if err != nil {
+		return nil, err
 	}
 
 	s := golox.NewScanner(bytes.NewReader(bs))
 
-	tokens, err2 := s.ScanTokens()
+	tokens, err := s.ScanTokens()
 
-	if err2 != nil {
-		return nil, err2
+	if err != nil {
+		return nil, err
 	}
 
 	log.Info("Scanned the following tokens: ", tokens)
 
 	p := golox.NewParser(tokens)
 
-	stmts, err3 := p.Parse()
-
-	if err3 != nil {
-		return nil, err3
+	stmts, lerr := p.Parse()
+	if lerr != nil {
+		return nil, lerr
 	}
 
-	res, err4 := interp.Interpret(stmts)
+	resolver := golox.NewResolver(interp)
+	if lerr = resolver.Resolve(stmts); lerr != nil {
+		return nil, lerr
+	}
 
-	if err4 != nil {
-		return nil, err4
+	res, lerr := interp.Interpret(stmts)
+
+	if lerr != nil {
+		return nil, lerr
 	}
 
 	return res, nil
