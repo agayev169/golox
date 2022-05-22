@@ -5,7 +5,7 @@ import "fmt"
 type Interpreter struct {
 	globEnv *Env
 	env     *Env
-	isInF   bool
+	locals  map[Expr]int
 }
 
 func NewInterpreter() *Interpreter {
@@ -15,7 +15,7 @@ func NewInterpreter() *Interpreter {
 		panic(err)
 	}
 
-	return &Interpreter{globEnv: env, env: env, isInF: false}
+	return &Interpreter{globEnv: env, env: env, locals: make(map[Expr]int)}
 }
 
 func addFunc(env *Env, name Token, f Callable) *LoxError {
@@ -156,10 +156,6 @@ func (interp *Interpreter) AcceptVarStmt(v *Var) (interface{}, *LoxError) {
 }
 
 func (interp *Interpreter) AcceptReturnStmt(r *Return) (interface{}, *LoxError) {
-	if !interp.isInF {
-		return nil, genError(r.Keyword, ReturnOutsideFunc, "return statement cannot be used outside function.")
-	}
-
 	var ret interface{} = nil
 
 	if r.Value != nil {
@@ -180,9 +176,14 @@ func (interp *Interpreter) AcceptAssignExpr(a *Assign) (interface{}, *LoxError) 
 		return nil, err
 	}
 
-	err2 := interp.env.Assign(a.Name, val)
-	if err2 != nil {
-		return nil, err2
+	if d, ok := interp.locals[a]; ok {
+		if err = interp.env.AssignAt(a.Name, val, d); err != nil {
+			return nil, err
+		}
+	} else {
+		if err = interp.globEnv.Assign(a.Name, val); err != nil {
+			return nil, err
+		}
 	}
 
 	return nil, nil
@@ -223,12 +224,6 @@ func (interp *Interpreter) AcceptUnaryExpr(u *Unary) (interface{}, *LoxError) {
 }
 
 func (interp *Interpreter) AcceptCallExpr(c *Call) (interface{}, *LoxError) {
-	isInF := interp.isInF
-	defer func() {
-		interp.isInF = isInF
-	}()
-
-	interp.isInF = true
 	callee, err := interp.evaluate(c.Callee)
 	if err != nil {
 		return nil, err
@@ -357,9 +352,16 @@ func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, *LoxError) 
 }
 
 func (interp *Interpreter) AcceptVariableExpr(v *Variable) (interface{}, *LoxError) {
-	val, err := interp.env.Get(v.Name)
-	if err != nil {
-		return nil, err
+	var val interface{}
+	var err *LoxError
+
+	if d, ok := interp.locals[v]; ok {
+		val, err = interp.env.GetAt(v.Name, d)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		val, err = interp.globEnv.Get(v.Name)
 	}
 
 	if val == nil {
@@ -387,6 +389,10 @@ func (interp *Interpreter) AcceptLogicalExpr(l *Logical) (interface{}, *LoxError
 	}
 
 	return interp.evaluate(l.Right)
+}
+
+func (interp *Interpreter) Resolve(expr Expr, depth int) {
+	interp.locals[expr] = depth
 }
 
 func (interp *Interpreter) checkNumberOperand(op Token, r interface{}) *LoxError {
