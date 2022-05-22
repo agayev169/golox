@@ -21,28 +21,46 @@ func (e *Env) Define(name Token, val interface{}) *LoxError {
 	return nil
 }
 
+func (e *Env) GetAt(name Token, depth int) (interface{}, *LoxError) {
+	env := e.ancestor(depth)
+
+	return env.Get(name)
+}
+
 func (e *Env) Get(name Token) (interface{}, *LoxError) {
 	if val, ok := e.vars[name.Lexeme]; ok {
 		return val, nil
 	}
 
-	if e.enclosing == nil {
-		return nil, genUndefVarError(name)
-	}
+	return nil, genUndefVarError(name)
+}
 
-	return e.enclosing.Get(name)
+func (e *Env) AssignAt(name Token, value interface{}, depth int) *LoxError {
+	env := e.ancestor(depth)
+
+	return env.Assign(name, value)
 }
 
 func (e *Env) Assign(name Token, value interface{}) *LoxError {
 	if _, ok := e.vars[name.Lexeme]; !ok {
-		if e.enclosing == nil {
-			return genUndefVarError(name)
-		}
-
-		return e.enclosing.Assign(name, value)
+		return genUndefVarError(name)
 	}
 
 	e.vars[name.Lexeme] = value
 
 	return nil
+}
+
+func (e *Env) ancestor(depth int) *Env {
+	res := e
+
+	for i := 0; i < depth; i++ {
+		if res.enclosing == nil {
+			panic(fmt.Sprintf("Ancestor with the depth %d does not exist since the depth of the env is %d.", depth, i))
+		}
+
+		res = res.enclosing
+	}
+
+	return res
 }
