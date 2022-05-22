@@ -6,6 +6,7 @@ type Interpreter struct {
 	globEnv *Env
 	env     *Env
 	isInF   bool
+	locals  map[Expr]int
 }
 
 func NewInterpreter() *Interpreter {
@@ -15,7 +16,7 @@ func NewInterpreter() *Interpreter {
 		panic(err)
 	}
 
-	return &Interpreter{globEnv: env, env: env, isInF: false}
+	return &Interpreter{globEnv: env, env: env, isInF: false, locals: make(map[Expr]int)}
 }
 
 func addFunc(env *Env, name Token, f Callable) *LoxError {
@@ -387,6 +388,10 @@ func (interp *Interpreter) AcceptLogicalExpr(l *Logical) (interface{}, *LoxError
 	}
 
 	return interp.evaluate(l.Right)
+}
+
+func (interp *Interpreter) Resolve(expr Expr, depth int) {
+	interp.locals[expr] = depth
 }
 
 func (interp *Interpreter) checkNumberOperand(op Token, r interface{}) *LoxError {
