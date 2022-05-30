@@ -120,6 +120,7 @@ if __name__ == "__main__":
             ("Expression", [("expr", "Expr")]),
             ("Print", [("expr", "Expr")]),
             ("Var", [("name", "Token"), ("initializer", "Expr")]),
+            ("Class", [("name", "Token"), ("methods", "[]Func")]),
             ("Func", [("name", "Token"), ("params", "[]Token"),
                       ("body", "[]Stmt")]),
             ("If", [("condition", "Expr"), ("body", "Stmt"),
