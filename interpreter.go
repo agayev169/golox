@@ -262,6 +262,21 @@ func (interp *Interpreter) AcceptCallExpr(c *Call) (interface{}, *LoxError) {
 	return cf.Call(interp, args)
 }
 
+func (interp *Interpreter) AcceptGetExpr(g *Get) (interface{}, *LoxError) {
+	obj, err := interp.evaluate(g.Obj)
+	if err != nil {
+		return nil, err
+	}
+
+	i, ok := obj.(LoxInstance)
+
+	if !ok {
+		return nil, genError(g.Name, NonInstanceProperty, "Only instances have properties.")
+	}
+
+	return i.Get(g.Name)
+}
+
 func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, *LoxError) {
 	lv, err := b.Left.Accept(interp)
 

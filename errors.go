@@ -19,6 +19,8 @@ const (
 	NameAlreadyDefined
 	ReturnOutsideFunc
 	SelfInitialization
+	NonInstanceProperty
+	UndefinedProperty
 )
 
 var errorNames = map[LoxErrorNumber]string{
@@ -36,6 +38,8 @@ var errorNames = map[LoxErrorNumber]string{
 	NameAlreadyDefined:    "Name already defined",
 	ReturnOutsideFunc:     "Return outside function",
 	SelfInitialization:    "Variable self initialization",
+	NonInstanceProperty:   "Non instance property",
+	UndefinedProperty:     "Undefined property",
 }
 
 type LoxError struct {
