@@ -46,9 +46,46 @@ func (p *Parser) parseDeclaration() (Stmt, *LoxError) {
 		}
 
 		return s, nil
+	} else if p.peek(CLASS) {
+		return p.parseClassDeclaration()
 	}
 
 	return p.parseStmt()
+}
+
+func (p *Parser) parseClassDeclaration() (Stmt, *LoxError) {
+	if _, err := p.consume(CLASS); err != nil {
+		return nil, err
+	}
+
+	name, err := p.consume(IDENTIFIER)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := p.consume(LEFT_BRACE); err != nil {
+		return nil, err
+	}
+
+	ms := make([]Func, 0)
+
+	for !p.peek(RIGHT_BRACE) {
+		f, err := p.parseFunction()
+		if err != nil {
+			return nil, err
+		}
+
+		ms = append(ms, *f)
+	}
+
+	if _, err := p.consume(RIGHT_BRACE); err != nil {
+		return nil, err
+	}
+
+	return &Class{
+		Name:    *name,
+		Methods: ms,
+	}, nil
 }
 
 func (p *Parser) parseFunDeclaration() (Stmt, *LoxError) {
@@ -56,6 +93,10 @@ func (p *Parser) parseFunDeclaration() (Stmt, *LoxError) {
 		return nil, err
 	}
 
+	return p.parseFunction()
+}
+
+func (p *Parser) parseFunction() (*Func, *LoxError) {
 	name, err := p.consume(IDENTIFIER)
 	if err != nil {
 		return nil, err
@@ -102,7 +143,7 @@ func (p *Parser) parseParams() ([]Token, *LoxError) {
 		}
 
 		if t.Type != IDENTIFIER {
-			return nil, genError(t, InvalidParamName, fmt.Sprintf("Expect parameter name, got %s.", t.Lexeme))
+			return nil, genError(t, InvalidParamName, fmt.Sprintf("Expect parameter Name, got %s.", t.Lexeme))
 		}
 
 		res = append(res, t)
