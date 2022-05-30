@@ -74,6 +74,10 @@ func (r *Resolver) AcceptCallExpr(c *Call) (interface{}, *LoxError) {
 	return nil, nil
 }
 
+func (r *Resolver) AcceptGetExpr(g *Get) (interface{}, *LoxError) {
+	return nil, r.resolveExpr(g.Obj)
+}
+
 func (r *Resolver) AcceptVariableExpr(v *Variable) (interface{}, *LoxError) {
 	if len(r.scopes) != 0 {
 		if def, ok := r.scopes[len(r.scopes)-1][v.Name.Lexeme]; ok && !def {
