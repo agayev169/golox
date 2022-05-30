@@ -1,6 +1,8 @@
 program             declaration* EOF ;
-declaration         funDecl | varDecl | statement ;
-funDecl             fun IDENTIFIER "(" parameters? ")" block ;
+declaration         funDecl | varDecl | statement | classDecl ;
+classDecl           "class" IDENTIFIER "{" function* "}" ;
+funDecl             "fun" function ;
+function            IDENTIFIER "(" parameters? ")" block ;
 parameters          IDENTIFIER ( "," IDENTIFIER )* ;
 varDecl             "var" IDENTIFIER ( "=" expression )? ";" ;
 statement           exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | returnStmt ;
