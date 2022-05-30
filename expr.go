@@ -70,6 +70,17 @@ func (c *Call) Accept(v ExprVisitor) (interface{}, *LoxError) {
 	return v.AcceptCallExpr(c)
 }
 
+// ================ Get ================
+
+type Get struct {
+	Obj  Expr
+	Name Token
+}
+
+func (g *Get) Accept(v ExprVisitor) (interface{}, *LoxError) {
+	return v.AcceptGetExpr(g)
+}
+
 // ================ Variable ================
 
 type Variable struct {
@@ -101,6 +112,7 @@ type ExprVisitor interface {
 	AcceptLiteralExpr(*Literal) (interface{}, *LoxError)
 	AcceptUnaryExpr(*Unary) (interface{}, *LoxError)
 	AcceptCallExpr(*Call) (interface{}, *LoxError)
+	AcceptGetExpr(*Get) (interface{}, *LoxError)
 	AcceptVariableExpr(*Variable) (interface{}, *LoxError)
 	AcceptLogicalExpr(*Logical) (interface{}, *LoxError)
 }

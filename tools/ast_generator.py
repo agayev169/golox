@@ -105,6 +105,7 @@ if __name__ == "__main__":
             ("Literal", [("value", "interface{}")]),
             ("Unary", [("operator", "Token"), ("right", "Expr")]),
             ("Call", [("callee", "Expr"), ("paren", "Token"), ("args", "[]Expr")]),
+            ("Get", [("obj", "Expr"), ("name", "Token")]),
             ("Variable", [("name", "Token")]),
             ("Logical", [("left", "Expr"),
                          ("operator", "Token"), ("right", "Expr")]),
