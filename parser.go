@@ -646,22 +646,46 @@ func (p *Parser) parseCall() (Expr, *LoxError) {
 			break
 		}
 
-		lp, err2 := p.consume(LEFT_PAREN)
-		if err2 != nil {
-			return nil, err2
-		}
+		if p.peek(LEFT_PAREN) {
+			lp, err2 := p.consume(LEFT_PAREN)
+			if err2 != nil {
+				return nil, err2
+			}
 
-		args, err3 := p.parseArguments()
-		if err3 != nil {
-			return nil, err3
-		}
+			args, err3 := p.parseArguments()
+			if err3 != nil {
+				return nil, err3
+			}
 
-		_, err4 := p.consume(RIGHT_PAREN)
-		if err4 != nil {
-			return nil, err4
-		}
+			_, err4 := p.consume(RIGHT_PAREN)
+			if err4 != nil {
+				return nil, err4
+			}
 
-		res = &Call{Callee: res, Paren: *lp, Args: args}
+			res = &Call{Callee: res, Paren: *lp, Args: args}
+		} else if p.peek(DOT) {
+			if _, err := p.consume(DOT); err != nil {
+				return nil, err
+			}
+
+			name, err := p.consume(IDENTIFIER)
+			if err != nil {
+				return nil, err
+			}
+
+			res = &Get{Obj: res, Name: *name}
+		} else {
+			var t Token
+			var msg string
+
+			if p.isAtEnd() {
+				t, msg = p.getPrevToken(), "Expected one of ('(', '.') but reached EOF."
+			} else {
+				t, msg = p.getNextToken(), fmt.Sprintf("Expected one of ('(', '.') but found %s.", t.Lexeme)
+			}
+
+			return nil, genError(t, UnfinishedExpression, msg)
+		}
 	}
 
 	return res, nil
@@ -762,6 +786,10 @@ func (p *Parser) consume(tt TokenType) (*Token, *LoxError) {
 	}
 
 	return &t, nil
+}
+
+func (p *Parser) getPrevToken() Token {
+	return p.tokens[p.current-1]
 }
 
 func (p *Parser) getNextToken() Token {
