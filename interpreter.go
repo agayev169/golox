@@ -37,6 +37,16 @@ func (interp *Interpreter) Interpret(stmts []Stmt) (interface{}, *LoxError) {
 	return res, nil
 }
 
+func (interp *Interpreter) AcceptClassStmt(c *Class) (interface{}, *LoxError) {
+	if err := interp.env.Define(c.Name, nil); err != nil {
+		return nil, err
+	}
+
+	cl := NewLoxClass(c.Name.Lexeme)
+
+	return nil, interp.env.Assign(c.Name, cl)
+}
+
 func (interp *Interpreter) AcceptFuncStmt(f *Func) (interface{}, *LoxError) {
 	if err := addFunc(interp.env, f.Name, NewLoxFunction(f, interp.env)); err != nil {
 		return nil, err
