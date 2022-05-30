@@ -154,6 +154,16 @@ func (r *Resolver) AcceptFuncStmt(f *Func) (interface{}, *LoxError) {
 	return nil, r.resolveBlock(f.Body)
 }
 
+func (r *Resolver) AcceptClassStmt(c *Class) (interface{}, *LoxError) {
+	if err := r.declare(c.Name); err != nil {
+		return nil, err
+	}
+
+	r.define(c.Name)
+
+	return nil, nil
+}
+
 func (r *Resolver) AcceptIfStmt(i *If) (interface{}, *LoxError) {
 	if err := r.resolveExpr(i.Condition); err != nil {
 		return nil, err
