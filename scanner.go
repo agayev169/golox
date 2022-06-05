@@ -125,12 +125,16 @@ func (s *Scanner) scanToken() error {
 	case '\t':
 	case '\n':
 		// Ignore whitespace.
-        break
+		break
 	case '"':
-		s.parseString()
+		if err := s.parseString(); err != nil {
+			return err
+		}
 	default:
 		if isDigit(b) {
-			s.parseNumber()
+			if err := s.parseNumber(); err != nil {
+				return err
+			}
 		} else if isAlpha(b) {
 			s.parseIdentifier()
 		} else {
@@ -277,7 +281,9 @@ func (s *Scanner) match(m string) bool {
 	}
 
 	if sb.String() != m {
-		s.unread(sb.Len(), line, col)
+		if err := s.unread(sb.Len(), line, col); err != nil {
+			panic("Failed to unread.")
+		}
 
 		return false
 	}
@@ -285,10 +291,15 @@ func (s *Scanner) match(m string) bool {
 	return true
 }
 
-func (s *Scanner) unread(n, line, col int) {
-	s.source.Seek(-int64(n), io.SeekCurrent)
+func (s *Scanner) unread(n, line, col int) error {
+	if _, err := s.source.Seek(-int64(n), io.SeekCurrent); err != nil {
+		return err
+	}
+
 	s.line = line
 	s.col = col
+
+	return nil
 }
 
 func (s *Scanner) addToken(t TokenType, literal interface{}) {
