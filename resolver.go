@@ -146,24 +146,7 @@ func (r *Resolver) AcceptFuncStmt(f *Func) (interface{}, *LoxError) {
 
 	r.define(f.Name)
 
-	oldf := r.curf
-	r.curf = Function
-	defer func() {
-		r.curf = oldf
-	}()
-
-	r.beginScope()
-	defer r.endScope()
-
-	for _, p := range f.Params {
-		if err := r.declare(p); err != nil {
-			return nil, err
-		}
-
-		r.define(p)
-	}
-
-	return nil, r.resolveBlock(f.Body)
+	return nil, r.resolveFunc(f, Function)
 }
 
 func (r *Resolver) AcceptClassStmt(c *Class) (interface{}, *LoxError) {
@@ -172,6 +155,12 @@ func (r *Resolver) AcceptClassStmt(c *Class) (interface{}, *LoxError) {
 	}
 
 	r.define(c.Name)
+
+	for _, m := range c.Methods {
+		if err := r.resolveFunc(&m, Method); err != nil {
+			return nil, err
+		}
+	}
 
 	return nil, nil
 }
@@ -206,6 +195,27 @@ func (r *Resolver) AcceptReturnStmt(ret *Return) (interface{}, *LoxError) {
 	}
 
 	return nil, nil
+}
+
+func (r *Resolver) resolveFunc(f *Func, t FunctionType) *LoxError {
+	oldf := r.curf
+	r.curf = t
+	defer func() {
+		r.curf = oldf
+	}()
+
+	r.beginScope()
+	defer r.endScope()
+
+	for _, p := range f.Params {
+		if err := r.declare(p); err != nil {
+			return err
+		}
+
+		r.define(p)
+	}
+
+	return r.resolveBlock(f.Body)
 }
 
 func (r *Resolver) resolveExpr(expr Expr) *LoxError {
