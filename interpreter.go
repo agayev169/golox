@@ -268,13 +268,35 @@ func (interp *Interpreter) AcceptGetExpr(g *Get) (interface{}, *LoxError) {
 		return nil, err
 	}
 
-	i, ok := obj.(LoxInstance)
+	i, ok := obj.(*LoxInstance)
 
 	if !ok {
 		return nil, genError(g.Name, NonInstanceProperty, "Only instances have properties.")
 	}
 
 	return i.Get(g.Name)
+}
+
+func (interp *Interpreter) AcceptSetExpr(s *Set) (interface{}, *LoxError) {
+	obj, err := interp.evaluate(s.Obj)
+	if err != nil {
+		return nil, err
+	}
+
+	i, ok := obj.(*LoxInstance)
+
+	if !ok {
+		return nil, genError(s.Name, NonInstanceProperty, "Only instances have properties.")
+	}
+
+	r, err := interp.evaluate(s.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	i.Set(s.Name, r)
+
+	return nil, nil
 }
 
 func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, *LoxError) {

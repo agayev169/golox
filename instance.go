@@ -20,6 +20,10 @@ func (i *LoxInstance) Get(t Token) (interface{}, *LoxError) {
 	return p, nil
 }
 
+func (i *LoxInstance) Set(t Token, v interface{}) {
+	i.props[t.Lexeme] = v
+}
+
 func (i *LoxInstance) String() string {
 	return fmt.Sprintf("%s instance", i.c.Name)
 }
