@@ -476,17 +476,18 @@ func (p *Parser) parseAssignment() (Expr, *LoxError) {
 			return nil, err2
 		}
 
-		v, ok := expr.(*Variable)
-		if !ok {
-			return nil, &LoxError{File: equals.File, Line: equals.Line, Col: equals.Col, Number: InvalidAssignment, Msg: "Invalid assignment target."}
-		}
-
 		assignment, err3 := p.parseAssignment()
 		if err3 != nil {
 			return nil, err3
 		}
 
-		return &Assign{Name: v.Name, Value: assignment}, nil
+		if v, ok := expr.(*Variable); ok {
+			return &Assign{Name: v.Name, Value: assignment}, nil
+		} else if g, ok := expr.(*Get); ok {
+			return &Set{Obj: g.Obj, Name: g.Name, Value: assignment}, nil
+		} else {
+			return nil, genError(*equals, InvalidAssignment, "Invalid assignment target.")
+		}
 	}
 
 	return expr, nil
@@ -642,10 +643,6 @@ func (p *Parser) parseCall() (Expr, *LoxError) {
 	res := pr
 
 	for true {
-		if !p.peek(LEFT_PAREN) {
-			break
-		}
-
 		if p.peek(LEFT_PAREN) {
 			lp, err2 := p.consume(LEFT_PAREN)
 			if err2 != nil {
@@ -675,16 +672,7 @@ func (p *Parser) parseCall() (Expr, *LoxError) {
 
 			res = &Get{Obj: res, Name: *name}
 		} else {
-			var t Token
-			var msg string
-
-			if p.isAtEnd() {
-				t, msg = p.getPrevToken(), "Expected one of ('(', '.') but reached EOF."
-			} else {
-				t, msg = p.getNextToken(), fmt.Sprintf("Expected one of ('(', '.') but found %s.", t.Lexeme)
-			}
-
-			return nil, genError(t, UnfinishedExpression, msg)
+			break
 		}
 	}
 
