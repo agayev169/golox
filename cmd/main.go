@@ -94,6 +94,8 @@ func run(r *bufio.Reader, interp *golox.Interpreter) (interface{}, error) {
 		return nil, lerr
 	}
 
+	log.Info("Parsed the following statements: ", stmts)
+
 	resolver := golox.NewResolver(interp)
 	if lerr = resolver.Resolve(stmts); lerr != nil {
 		return nil, lerr
