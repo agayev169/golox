@@ -17,6 +17,7 @@ type FunctionType = int
 const (
 	None FunctionType = iota
 	Function
+	Method
 )
 
 type LoxFunction struct {
