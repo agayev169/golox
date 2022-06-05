@@ -42,7 +42,14 @@ func (interp *Interpreter) AcceptClassStmt(c *Class) (interface{}, *LoxError) {
 		return nil, err
 	}
 
-	cl := NewLoxClass(c.Name.Lexeme)
+	ms := make(map[string]*LoxFunction, len(c.Methods))
+
+	for _, m := range c.Methods {
+		f := NewLoxFunction(&m, interp.env)
+		ms[m.Name.Lexeme] = f
+	}
+
+	cl := NewLoxClass(c.Name.Lexeme, ms)
 
 	return nil, interp.env.Assign(c.Name, cl)
 }

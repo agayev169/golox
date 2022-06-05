@@ -1,11 +1,12 @@
 package golox
 
 type LoxClass struct {
-	Name string
+	Name    string
+	methods map[string]*LoxFunction
 }
 
-func NewLoxClass(name string) *LoxClass {
-	return &LoxClass{Name: name}
+func NewLoxClass(name string, methods map[string]*LoxFunction) *LoxClass {
+	return &LoxClass{Name: name, methods: methods}
 }
 
 func (c *LoxClass) String() string {
@@ -18,4 +19,9 @@ func (c *LoxClass) GetArity() int {
 
 func (c *LoxClass) Call(*Interpreter, []interface{}) (interface{}, *LoxError) {
 	return NewLoxInstance(c), nil
+}
+
+func (c *LoxClass) GetMethod(name string) (*LoxFunction, bool) {
+	m, ok := c.methods[name]
+	return m, ok
 }
