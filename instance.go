@@ -14,7 +14,9 @@ func NewLoxInstance(c *LoxClass) *LoxInstance {
 func (i *LoxInstance) Get(t Token) (interface{}, *LoxError) {
 	p, ok := i.props[t.Lexeme]
 	if !ok {
-		return nil, genError(t, UndefinedProperty, fmt.Sprintf("Undefined property '%s'.", t.Lexeme))
+		if p, ok = i.c.GetMethod(t.Lexeme); !ok {
+			return nil, genError(t, UndefinedProperty, fmt.Sprintf("Undefined property '%s'.", t.Lexeme))
+		}
 	}
 
 	return p, nil
