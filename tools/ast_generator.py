@@ -21,6 +21,8 @@ def define_ast(
             [
                 "package golox\n",
                 "\n",
+                "import \"fmt\"\n",
+                "\n"
             ]
         )
 
@@ -63,6 +65,15 @@ def define_ast(
             ]
 
             lines += ["\n"]
+
+            lines = lines + [
+                f'func ({varName} *{name}) String() string {{\n'
+                f'  return fmt.Sprintf("({name}): {{{"; ".join(f"{p[0]}:  %v" for p in params)}}}", {",".join(map(lambda p: f"{varName}.{publicize(p[0])}", params))})\n'
+                '}\n'
+            ]
+
+            lines += ["\n"]
+
             f.writelines(lines)
 
             visitor_methods += [
@@ -106,6 +117,7 @@ if __name__ == "__main__":
             ("Unary", [("operator", "Token"), ("right", "Expr")]),
             ("Call", [("callee", "Expr"), ("paren", "Token"), ("args", "[]Expr")]),
             ("Get", [("obj", "Expr"), ("name", "Token")]),
+            ("Set", [("obj", "Expr"), ("name", "Token"), ("value", "Expr")]),
             ("Variable", [("name", "Token")]),
             ("Logical", [("left", "Expr"),
                          ("operator", "Token"), ("right", "Expr")]),

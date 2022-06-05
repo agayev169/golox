@@ -1,5 +1,7 @@
 package golox
 
+import "fmt"
+
 type Expr interface {
 	Accept(v ExprVisitor) (interface{}, *LoxError)
 }
@@ -15,6 +17,10 @@ func (a *Assign) Accept(v ExprVisitor) (interface{}, *LoxError) {
 	return v.AcceptAssignExpr(a)
 }
 
+func (a *Assign) String() string {
+	return fmt.Sprintf("(Assign): { name:  %v; value:  %v }", a.Name, a.Value)
+}
+
 // ================ Binary ================
 
 type Binary struct {
@@ -27,6 +33,10 @@ func (b *Binary) Accept(v ExprVisitor) (interface{}, *LoxError) {
 	return v.AcceptBinaryExpr(b)
 }
 
+func (b *Binary) String() string {
+	return fmt.Sprintf("(Binary): { left:  %v; operator:  %v; right:  %v }", b.Left, b.Operator, b.Right)
+}
+
 // ================ Grouping ================
 
 type Grouping struct {
@@ -35,6 +45,10 @@ type Grouping struct {
 
 func (g *Grouping) Accept(v ExprVisitor) (interface{}, *LoxError) {
 	return v.AcceptGroupingExpr(g)
+}
+
+func (g *Grouping) String() string {
+	return fmt.Sprintf("(Grouping): { expr:  %v }", g.Expr)
 }
 
 // ================ Literal ================
@@ -47,6 +61,10 @@ func (l *Literal) Accept(v ExprVisitor) (interface{}, *LoxError) {
 	return v.AcceptLiteralExpr(l)
 }
 
+func (l *Literal) String() string {
+	return fmt.Sprintf("(Literal): { value:  %v }", l.Value)
+}
+
 // ================ Unary ================
 
 type Unary struct {
@@ -56,6 +74,10 @@ type Unary struct {
 
 func (u *Unary) Accept(v ExprVisitor) (interface{}, *LoxError) {
 	return v.AcceptUnaryExpr(u)
+}
+
+func (u *Unary) String() string {
+	return fmt.Sprintf("(Unary): { operator:  %v; right:  %v }", u.Operator, u.Right)
 }
 
 // ================ Call ================
@@ -70,6 +92,10 @@ func (c *Call) Accept(v ExprVisitor) (interface{}, *LoxError) {
 	return v.AcceptCallExpr(c)
 }
 
+func (c *Call) String() string {
+	return fmt.Sprintf("(Call): { callee:  %v; paren:  %v; args:  %v }", c.Callee, c.Paren, c.Args)
+}
+
 // ================ Get ================
 
 type Get struct {
@@ -81,6 +107,26 @@ func (g *Get) Accept(v ExprVisitor) (interface{}, *LoxError) {
 	return v.AcceptGetExpr(g)
 }
 
+func (g *Get) String() string {
+	return fmt.Sprintf("(Get): { obj:  %v; name:  %v }", g.Obj, g.Name)
+}
+
+// ================ Set ================
+
+type Set struct {
+	Obj   Expr
+	Name  Token
+	Value Expr
+}
+
+func (s *Set) Accept(v ExprVisitor) (interface{}, *LoxError) {
+	return v.AcceptSetExpr(s)
+}
+
+func (s *Set) String() string {
+	return fmt.Sprintf("(Set): { obj:  %v; name:  %v; value:  %v }", s.Obj, s.Name, s.Value)
+}
+
 // ================ Variable ================
 
 type Variable struct {
@@ -89,6 +135,10 @@ type Variable struct {
 
 func (va *Variable) Accept(v ExprVisitor) (interface{}, *LoxError) {
 	return v.AcceptVariableExpr(va)
+}
+
+func (va *Variable) String() string {
+	return fmt.Sprintf("(Variable): { name:  %v }", va.Name)
 }
 
 // ================ Logical ================
@@ -103,6 +153,10 @@ func (l *Logical) Accept(v ExprVisitor) (interface{}, *LoxError) {
 	return v.AcceptLogicalExpr(l)
 }
 
+func (l *Logical) String() string {
+	return fmt.Sprintf("(Logical): { left:  %v; operator:  %v; right:  %v }", l.Left, l.Operator, l.Right)
+}
+
 // ================ ExprVisitor ================
 
 type ExprVisitor interface {
@@ -113,6 +167,7 @@ type ExprVisitor interface {
 	AcceptUnaryExpr(*Unary) (interface{}, *LoxError)
 	AcceptCallExpr(*Call) (interface{}, *LoxError)
 	AcceptGetExpr(*Get) (interface{}, *LoxError)
+	AcceptSetExpr(*Set) (interface{}, *LoxError)
 	AcceptVariableExpr(*Variable) (interface{}, *LoxError)
 	AcceptLogicalExpr(*Logical) (interface{}, *LoxError)
 }
