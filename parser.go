@@ -327,17 +327,17 @@ func (p *Parser) parseForStmt() (Stmt, *LoxError) {
 		return nil, err
 	}
 
-	init, err := p.parseWhileInit()
+	init, err := p.parseForInit()
 	if err != nil {
 		return nil, err
 	}
 
-	cond, err2 := p.parseWhileCond()
+	cond, err2 := p.parseForCond()
 	if err2 != nil {
 		return nil, err2
 	}
 
-	increment, err3 := p.parseWhileIncrement()
+	increment, err3 := p.parseForIncrement()
 	if err3 != nil {
 		return nil, err3
 	}
@@ -362,7 +362,7 @@ func (p *Parser) parseForStmt() (Stmt, *LoxError) {
 	return body, nil
 }
 
-func (p *Parser) parseWhileInit() (Stmt, *LoxError) {
+func (p *Parser) parseForInit() (Stmt, *LoxError) {
 	var init Stmt
 	if p.peek(SEMICOLON) {
 		if _, err := p.consume(SEMICOLON); err != nil {
@@ -387,7 +387,7 @@ func (p *Parser) parseWhileInit() (Stmt, *LoxError) {
 	return init, nil
 }
 
-func (p *Parser) parseWhileCond() (Expr, *LoxError) {
+func (p *Parser) parseForCond() (Expr, *LoxError) {
 	var cond Expr
 	if !p.peek(SEMICOLON) {
 		if e, err := p.parseExpression(); err != nil {
@@ -404,7 +404,7 @@ func (p *Parser) parseWhileCond() (Expr, *LoxError) {
 	return cond, nil
 }
 
-func (p *Parser) parseWhileIncrement() (Expr, *LoxError) {
+func (p *Parser) parseForIncrement() (Expr, *LoxError) {
 	var increment Expr
 	if !p.peek(RIGHT_PAREN) {
 		if e, err := p.parseExpression(); err != nil {
@@ -764,13 +764,13 @@ func (p *Parser) sync() {
 func (p *Parser) consume(tt TokenType) (*Token, *LoxError) {
 	if p.isAtEnd() {
 		lt := p.tokens[len(p.tokens)-1]
-		return nil, &LoxError{Number: UnfinishedExpression, File: lt.File, Line: lt.Line, Col: lt.Col, Msg: fmt.Sprintf("Unfinished expression. Expected `%s` but found EOF.", tt)}
+		return nil, &LoxError{Number: UnfinishedExpression, File: lt.File, Line: lt.Line, Col: lt.Col, Msg: fmt.Sprintf("Unfinished expression. Expected `%s` but found EOF.", tokenNames[tt])}
 	}
 
 	t := p.getNextToken()
 
 	if t.Type != tt {
-		return nil, &LoxError{Number: UnfinishedExpression, File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Unfinished expression. Expected `%s` but found `%s`.", tt, t.Lexeme)}
+		return nil, &LoxError{Number: UnfinishedExpression, File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Unfinished expression. Expected `%s` but found `%s`.", tokenNames[tt], t.Lexeme)}
 	}
 
 	return &t, nil
