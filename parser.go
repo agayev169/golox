@@ -745,6 +745,10 @@ func (p *Parser) parsePrimary() (Expr, *LoxError) {
 		return &Grouping{Expr: expr}, nil
 	}
 
+	if t.Type == THIS {
+		return &This{Token: t}, nil
+	}
+
 	return nil, &LoxError{Number: UnexpectedChar, File: t.File, Line: t.Line, Col: t.Col, Msg: fmt.Sprintf("Expected one of (number, string, `true`, `false`, `nil`, identifier, `(`}) but found `%s`.", t.Lexeme)}
 }
 
