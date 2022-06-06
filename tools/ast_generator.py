@@ -118,6 +118,7 @@ if __name__ == "__main__":
             ("Call", [("callee", "Expr"), ("paren", "Token"), ("args", "[]Expr")]),
             ("Get", [("obj", "Expr"), ("name", "Token")]),
             ("Set", [("obj", "Expr"), ("name", "Token"), ("value", "Expr")]),
+            ("This", [("token", "Token")]),
             ("Variable", [("name", "Token")]),
             ("Logical", [("left", "Expr"),
                          ("operator", "Token"), ("right", "Expr")]),

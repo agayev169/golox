@@ -17,7 +17,7 @@ func (b *Block) Accept(v StmtVisitor) (interface{}, *LoxError) {
 }
 
 func (b *Block) String() string {
-	return fmt.Sprintf("(Block): { stmts:  %v }", b.Stmts)
+	return fmt.Sprintf("(Block): {stmts:  %v}", b.Stmts)
 }
 
 // ================ Expression ================
@@ -31,7 +31,7 @@ func (e *Expression) Accept(v StmtVisitor) (interface{}, *LoxError) {
 }
 
 func (e *Expression) String() string {
-	return fmt.Sprintf("(Expression): { expr:  %v }", e.Expr)
+	return fmt.Sprintf("(Expression): {expr:  %v}", e.Expr)
 }
 
 // ================ Print ================
@@ -45,7 +45,7 @@ func (p *Print) Accept(v StmtVisitor) (interface{}, *LoxError) {
 }
 
 func (p *Print) String() string {
-	return fmt.Sprintf("(Print): { expr:  %v }", p.Expr)
+	return fmt.Sprintf("(Print): {expr:  %v}", p.Expr)
 }
 
 // ================ Var ================
@@ -60,7 +60,7 @@ func (va *Var) Accept(v StmtVisitor) (interface{}, *LoxError) {
 }
 
 func (va *Var) String() string {
-	return fmt.Sprintf("(Var): { name:  %v; initializer:  %v }", va.Name, va.Initializer)
+	return fmt.Sprintf("(Var): {name:  %v; initializer:  %v}", va.Name, va.Initializer)
 }
 
 // ================ Class ================
@@ -75,7 +75,7 @@ func (c *Class) Accept(v StmtVisitor) (interface{}, *LoxError) {
 }
 
 func (c *Class) String() string {
-	return fmt.Sprintf("(Class): { name:  %v; methods:  %v }", c.Name, c.Methods)
+	return fmt.Sprintf("(Class): {name:  %v; methods:  %v}", c.Name, c.Methods)
 }
 
 // ================ Func ================
@@ -91,7 +91,7 @@ func (f *Func) Accept(v StmtVisitor) (interface{}, *LoxError) {
 }
 
 func (f *Func) String() string {
-	return fmt.Sprintf("(Func): { name:  %v; params:  %v; body:  %v }", f.Name, f.Params, f.Body)
+	return fmt.Sprintf("(Func): {name:  %v; params:  %v; body:  %v}", f.Name, f.Params, f.Body)
 }
 
 // ================ If ================
@@ -107,7 +107,7 @@ func (i *If) Accept(v StmtVisitor) (interface{}, *LoxError) {
 }
 
 func (i *If) String() string {
-	return fmt.Sprintf("(If): { condition:  %v; body:  %v; elseBody:  %v }", i.Condition, i.Body, i.ElseBody)
+	return fmt.Sprintf("(If): {condition:  %v; body:  %v; elseBody:  %v}", i.Condition, i.Body, i.ElseBody)
 }
 
 // ================ While ================
@@ -122,7 +122,7 @@ func (w *While) Accept(v StmtVisitor) (interface{}, *LoxError) {
 }
 
 func (w *While) String() string {
-	return fmt.Sprintf("(While): { condition:  %v; body:  %v }", w.Condition, w.Body)
+	return fmt.Sprintf("(While): {condition:  %v; body:  %v}", w.Condition, w.Body)
 }
 
 // ================ Return ================
@@ -137,7 +137,7 @@ func (r *Return) Accept(v StmtVisitor) (interface{}, *LoxError) {
 }
 
 func (r *Return) String() string {
-	return fmt.Sprintf("(Return): { keyword:  %v; value:  %v }", r.Keyword, r.Value)
+	return fmt.Sprintf("(Return): {keyword:  %v; value:  %v}", r.Keyword, r.Value)
 }
 
 // ================ StmtVisitor ================
