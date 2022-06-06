@@ -21,6 +21,10 @@ func (e *Env) Define(name Token, val interface{}) *LoxError {
 	return nil
 }
 
+func (e *Env) DefineThis(val interface{}) {
+	e.vars["this"] = val
+}
+
 func (e *Env) GetAt(name Token, depth int) (interface{}, *LoxError) {
 	env := e.ancestor(depth)
 
