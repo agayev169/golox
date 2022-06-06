@@ -306,6 +306,10 @@ func (interp *Interpreter) AcceptSetExpr(s *Set) (interface{}, *LoxError) {
 	return nil, nil
 }
 
+func (interp *Interpreter) AcceptThisExpr(t *This) (interface{}, *LoxError) {
+	return interp.getVariable(t, t.Token)
+}
+
 func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, *LoxError) {
 	lv, err := b.Left.Accept(interp)
 
@@ -406,25 +410,32 @@ func (interp *Interpreter) AcceptBinaryExpr(b *Binary) (interface{}, *LoxError) 
 }
 
 func (interp *Interpreter) AcceptVariableExpr(v *Variable) (interface{}, *LoxError) {
+	val, err := interp.getVariable(v, v.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return val, nil
+}
+
+func (interp *Interpreter) getVariable(e Expr, t Token) (interface{}, *LoxError) {
 	var val interface{}
 	var err *LoxError
 
-	if d, ok := interp.locals[v]; ok {
-		val, err = interp.env.GetAt(v.Name, d)
+	if d, ok := interp.locals[e]; ok {
+		val, err = interp.env.GetAt(t, d)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		val, err = interp.globEnv.Get(v.Name)
-	}
-
-	if val == nil {
-		return nil,
-			&LoxError{File: v.Name.File,
-				Line:   v.Name.Line,
-				Col:    v.Name.Col,
+		val, err = interp.globEnv.Get(t)
+		if err != nil {
+			return nil, &LoxError{File: t.File,
+				Line:   t.Line,
+				Col:    t.Col,
 				Number: UnassignedVariable,
-				Msg:    fmt.Sprintf("Usage of unassigned variable %s", v.Name.Lexeme)}
+				Msg:    fmt.Sprintf("Usage of unassigned variable %s", t.Lexeme)}
+		}
 	}
 
 	return val, nil

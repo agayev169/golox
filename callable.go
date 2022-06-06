@@ -33,6 +33,13 @@ func (f *LoxFunction) GetArity() int {
 	return len(f.decl.Params)
 }
 
+func (f *LoxFunction) Bind(i *LoxInstance) *LoxFunction {
+	env := NewEnv(f.closure)
+	env.DefineThis(i)
+
+	return NewLoxFunction(f.decl, env)
+}
+
 func (f *LoxFunction) Call(i *Interpreter, args []interface{}) (interface{}, *LoxError) {
 	return f.call(i, args)
 }
