@@ -86,6 +86,10 @@ func (r *Resolver) AcceptSetExpr(s *Set) (interface{}, *LoxError) {
 	return nil, r.resolveExpr(s.Value)
 }
 
+func (r *Resolver) AcceptThisExpr(t *This) (interface{}, *LoxError) {
+	return nil, r.resolveLocalExpr(t, t.Token)
+}
+
 func (r *Resolver) AcceptVariableExpr(v *Variable) (interface{}, *LoxError) {
 	if len(r.scopes) != 0 {
 		if def, ok := r.scopes[len(r.scopes)-1][v.Name.Lexeme]; ok && !def {
@@ -155,6 +159,11 @@ func (r *Resolver) AcceptClassStmt(c *Class) (interface{}, *LoxError) {
 	}
 
 	r.define(c.Name)
+
+	r.beginScope()
+	defer func() { r.endScope() }()
+
+	r.scopes[len(r.scopes)-1]["this"] = true
 
 	for _, m := range c.Methods {
 		if err := r.resolveFunc(&m, Method); err != nil {
